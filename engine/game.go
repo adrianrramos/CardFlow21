@@ -1,5 +1,7 @@
 package engine
 
+import "fmt"
+
 // TODO: might want to move Strategy interface
 type Strategy interface {
 	Decide(player Hand, dealerUpCard Card) Action
@@ -17,6 +19,13 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
 
 	if player.IsBlackjack() && !dealer.IsBlackjack() {
 		return 1.5
+	}
+
+	// TODO: add logic for insurance here
+	if dealer.OffersInsurance() {
+		fmt.Println("Want insurance?")
+		// TODO: place bet for insurance here
+		// TODO: resolve insurance bet here
 	}
 
 	for {
