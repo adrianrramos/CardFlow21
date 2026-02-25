@@ -1,7 +1,8 @@
 # TOODO 
 ### P1
-    - [ ] Work on adding penetration to decks
     - [ ] Work on adding basic strategy 
+    - [ ] Add Split logic
+    - [ ] 
     - [ ] Work on adding logic for offering insurance
 
 ### P2

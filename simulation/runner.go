@@ -5,9 +5,9 @@ import (
 	"cardflow21/strategy"
 )
 
-func RunSimulation(rounds int, decks int) Stats {
+func RunSimulation(rounds int, decks int, penetration float64) Stats {
 	stats := Stats{}
-	shoe := engine.NewShoe(decks)
+	shoe := engine.NewShoe(decks, penetration)
 	strat := strategy.NewBasicStrategy()
 
 	for i := 0; i < rounds; i++ {
