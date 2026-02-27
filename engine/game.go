@@ -24,11 +24,17 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
 	// if dealer.OffersInsurance() {
 	// }
 
+	var doubled bool
 	for {
 		action := strat.Decide(*player, dealer.Cards[0])
 		
 		// TODO: Double and Split feature not ready 
-		if action == Double || action == Split {
+		if action == Double {
+			doubled = true
+			break
+		}
+		
+		if action == Split {
 			action = Hit
 		}
 
@@ -53,8 +59,14 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
 	}
 
 	if player.Value() > dealer.Value() {
+		if doubled {
+			return 2
+		}
 		return 1
 	} else if player.Value() < dealer.Value() {
+		if doubled {
+			return -2
+		}
 		return -1
 	}
 
