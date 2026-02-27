@@ -24,10 +24,35 @@ func (h Hand) Value() int {
 	return total
 }
 
+func (h Hand) IsSoft() bool {
+	total := 0
+	aces := 0
+	for _, card := range h.Cards {
+		total += card.Value()
+		if card.Rank == 1 {
+			aces++
+		}
+	}
+	return aces > 0 && total <= 21
+}
+
+func (h Hand) IsPair() bool {
+	return len(h.Cards) == 2 && h.Cards[0].Rank == h.Cards[1].Rank
+}
+
+func (h Hand) IsTwoCardTotal() bool {
+	return len(h.Cards) == 2
+}
+
 func (h Hand) IsBust() bool {
 	return h.Value() > 21
 }
 
 func (h Hand) IsBlackjack() bool {
 	return len(h.Cards) == 2 && h.Value() == 21
+}
+
+// Dealer is showing an Ace
+func (h Hand) OffersInsurance() bool {
+	return len(h.Cards) == 2 && h.Cards[0].Rank == 1
 }
