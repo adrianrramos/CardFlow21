@@ -7,6 +7,11 @@ type Strategy interface {
 }
 
 func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
+	result := PlayHandWithStrategyDetailed(shoe, strat)
+	return result.Profit
+}
+
+func PlayHandWithStrategyDetailed(shoe *Shoe, strat Strategy) HandResult {
 	player := &Hand{}
 	dealer := &Hand{}
 
@@ -15,8 +20,33 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
 	player.AddCard(shoe.Draw())
 	dealer.AddCard(shoe.Draw())
 
+	result := HandResult{
+		HandsInRound: 1,
+	}
+
+	if player.IsBlackjack() && dealer.IsBlackjack() {
+		result.PlayerBlackjack = true
+		result.DealerBlackjack = true
+		result.Profit = 0.0
+		result.PlayerValue = 21
+		result.DealerValue = 21
+		return result
+	}
+
 	if player.IsBlackjack() && !dealer.IsBlackjack() {
-		return 1.5
+		result.PlayerBlackjack = true
+		result.Profit = 1.5
+		result.PlayerValue = 21
+		result.DealerValue = dealer.Value()
+		return result
+	}
+
+	if dealer.IsBlackjack() {
+		result.DealerBlackjack = true
+		result.Profit = -1.0
+		result.PlayerValue = player.Value()
+		result.DealerValue = 21
+		return result
 	}
 
 	// TODO: place bet for insurance and resolve insurance bet here
@@ -40,16 +70,19 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
 
 			// Lookup action to catch any splits
 			action := strat.Decide(*current_hand, dealer.Cards[0])
-			if action == Split && current_hand.SplitCount < 4 {
+			if action == Split && current_hand.SplitCount < 4 && current_hand.IsPair() {
+				result.WasSplit = true
 				new_hand := &Hand{}
 				new_hand.AddCard(current_hand.Cards[1])
 				current_hand.RemoveCard()
 
-				current_hand.SplitCount++
-				new_hand.SplitCount++
+				nextSplitCount := current_hand.SplitCount + 1
+				current_hand.SplitCount = nextSplitCount
+				new_hand.SplitCount = nextSplitCount
 
 				hand_queue = append(hand_queue, new_hand)
 				hand_queue[i] = current_hand
+				result.HandsInRound++
 				continue // Start over with the new hand
 			}
 
@@ -58,20 +91,25 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
 		}
 	}
 
-	for dealer.Value() < 17 {
+	for dealer.Value() < 17 || (dealer.Value() == 17 && dealer.IsSoft()) {
 		dealer.AddCard(shoe.Draw())
 	}
 	dealer.CheckBust()
 
+	result.DealerBust = dealer.IsBust
+	result.DealerValue = dealer.Value()
+
 	// Evaluate all hands
-	total_profit := 0
+	total_profit := 0.0
 	for _, hand := range hand_queue {
-		wagered := 1
+		wagered := 1.0
 		if hand.IsDoubled {
-			wagered *= 2
+			wagered = 2.0
+			result.WasDoubled = true
 		}
 
 		if hand.IsBust {
+			result.PlayerBust = true
 			total_profit -= wagered
 			continue
 		}
@@ -87,7 +125,9 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
 		}
 	}
 
-	return float64(total_profit)
+	result.Profit = total_profit
+	result.PlayerValue = hand_queue[0].Value()
+	return result
 }
 
 
@@ -99,6 +139,7 @@ func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {
 		// TODO: Double and Split feature not ready 
 		if action == Double {
 			player.Doubled()
+			player.AddCard(shoe.Draw())
 			break
 		}
 		

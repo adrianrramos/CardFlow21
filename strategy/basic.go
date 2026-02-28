@@ -79,8 +79,11 @@ var Chart BasicStrategyChart = BasicStrategyChart{
 }
 
 func (b *BasicStrategy) Decide(player engine.Hand, dealerUpCard engine.Card) engine.Action {
-	if player.Value() <= 8 || player.Value() >= 21 {
+	if player.Value() <= 8 {
 		return engine.Hit
+	}
+	if player.Value() >= 21 {
+		return engine.Stand
 	}
 	if !player.IsSoft() && player.Value() > 17 {
 		return engine.Stand
