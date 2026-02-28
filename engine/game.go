@@ -6,7 +6,15 @@ type Strategy interface {
 	Name() string
 }
 
-func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
+type StatsTracker struct {
+	TotalHands int
+	DoubleWin int
+	DoubleLoss int
+	SplitHands int
+}
+
+func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker) (float64) {
+	statsTracker.TotalHands++
 	player := &Hand{}
 	dealer := &Hand{}
 
@@ -17,6 +25,10 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
 
 	if player.IsBlackjack() && !dealer.IsBlackjack() {
 		return 1.5
+	} else if player.IsBlackjack() && dealer.IsBlackjack() {
+		return 0
+	} else if !player.IsBlackjack() && dealer.IsBlackjack() {
+		return -1
 	}
 
 	// TODO: place bet for insurance and resolve insurance bet here
@@ -40,13 +52,16 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
 
 			// Lookup action to catch any splits
 			action := strat.Decide(*current_hand, dealer.Cards[0])
-			if action == Split && current_hand.SplitCount < 4 {
+			if action == Split && current_hand.SplitCount < 4 && current_hand.IsPair() {
+				statsTracker.SplitHands++
+				statsTracker.TotalHands++
 				new_hand := &Hand{}
 				new_hand.AddCard(current_hand.Cards[1])
 				current_hand.RemoveCard()
 
-				current_hand.SplitCount++
-				new_hand.SplitCount++
+				nextSplitCount := current_hand.SplitCount + 1
+				current_hand.SplitCount = nextSplitCount
+				new_hand.SplitCount = nextSplitCount
 
 				hand_queue = append(hand_queue, new_hand)
 				hand_queue[i] = current_hand
@@ -58,7 +73,8 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
 		}
 	}
 
-	for dealer.Value() < 17 {
+	// Hit 17 rules
+	for dealer.Value() < 17 || (dealer.Value() <= 17 && dealer.IsSoft()) {
 		dealer.AddCard(shoe.Draw())
 	}
 	dealer.CheckBust()
@@ -77,13 +93,22 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy) float64 {
 		}
 		if dealer.IsBust {
 			total_profit += wagered
+			if hand.IsDoubled {
+				statsTracker.DoubleWin++
+			}
 			continue
 		}
 		if hand.Value() > dealer.Value() {
 			total_profit += wagered
+			if hand.IsDoubled {
+				statsTracker.DoubleWin++
+			}
 		}
 		if hand.Value() < dealer.Value() {
 			total_profit -= wagered
+			if hand.IsDoubled {
+				statsTracker.DoubleLoss++
+			}
 		}
 	}
 
@@ -99,6 +124,7 @@ func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {
 		// TODO: Double and Split feature not ready 
 		if action == Double {
 			player.Doubled()
+			player.AddCard(shoe.Draw())
 			break
 		}
 		
@@ -118,5 +144,4 @@ func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {
 		}
 	}
 
-	return
 }

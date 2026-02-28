@@ -1,9 +1,7 @@
-# TOODO 
+# TODO:
 ### P1
-    - Add Split logic
+    - Add proper wagers, payouts, and bankroll
     - Add Insurance logic
-    - Add Double logic
-    - Add chips and bankroll
     - Add calculations for n0
 
 ### P2

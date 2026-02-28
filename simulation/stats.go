@@ -15,13 +15,6 @@ func (s *Stats) Update(result float64) {
 	s.TotalHands++
 	s.Profit += result
 
-	if int(result) == 2 {
-		s.DoubleWin++
-	}
-	if int(result) == -2 {
-		s.DoubleLoss++
-	}
-
 	delta := result - s.Mean
 	s.Mean += delta / float64(s.TotalHands)
 	s.M2 += delta * (result - s.Mean)
