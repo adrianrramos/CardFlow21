@@ -42,7 +42,7 @@ var Chart BasicStrategyChart = BasicStrategyChart{
 	// 2,  3,   4,   5,   6,   7,   8,   9,   10,  A
 	Hard: {
 		17: {"S", "S", "S", "S", "S", "S", "S", "S", "S", "S"},
-		16: {"S", "S", "S", "S", "S", "H", "H", "H", "H", "H"},
+		16: {"S", "S", "S", "S", "S", "H", "H", "H", "H", "S"},
 		15: {"S", "S", "S", "S", "S", "H", "H", "H", "H", "H"},
 		14: {"S", "S", "S", "S", "S", "H", "H", "H", "H", "H"},
 		13: {"S", "S", "S", "S", "S", "H", "H", "H", "H", "H"},
@@ -89,10 +89,25 @@ func (b *BasicStrategy) Decide(player engine.Hand, dealerUpCard engine.Card) eng
 		return engine.Stand
 	}
 
-	// TODO: Feature not ready
 	// PAIR SPLITTING
-	if player.IsPair() && Chart[Splits][player.Cards[0].Value()][dealerUpCard.Index()] == "Y" {
-		return engine.Split
+	if player.IsPair() {
+		rank := int(player.Cards[0].Rank)
+		var chartKey int
+		
+		if rank >= 2 && rank <= 9 {
+			// For ranks 2-9, use rank directly as chart key
+			chartKey = rank
+		} else if rank == 1 {
+			// Aces use value 11 as chart key
+			chartKey = 11
+		} else {
+			// 10s (rank 10-13) use value 10 as chart key
+			chartKey = 10
+		}
+		
+		if Chart[Splits][chartKey][dealerUpCard.Index()] == "Y" {
+			return engine.Split
+		}
 	}
 
 	var action string
@@ -114,6 +129,9 @@ func (b *BasicStrategy) Decide(player engine.Hand, dealerUpCard engine.Card) eng
 		}
 		return engine.Hit
 	case "Ds":
+		// Double if 2-card hand, otherwise Stand
+		// For soft 18 (A+7) vs dealer 6, must double on 2-card hands
+		// This is critical for correct EV - soft 18 vs 6 is a strong double
 		if player.IsTwoCardTotal() {
 			return engine.Double
 		}

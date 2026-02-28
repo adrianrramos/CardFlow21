@@ -35,14 +35,22 @@ func (h Hand) Value() int {
 
 func (h Hand) IsSoft() bool {
 	total := 0
-	aces := 0
+	aceCount := 0
 	for _, card := range h.Cards {
-		total += card.Value()
 		if card.Rank == 1 {
-			aces++
+			total += 11
+			aceCount++
+		} else {
+			total += card.Value()
 		}
 	}
-	return aces > 0 && total <= 21
+	// Adjust aces from 11 to 1 if needed
+	for total > 21 && aceCount > 0 {
+		total -= 10
+		aceCount--
+	}
+	// Soft if has ace AND at least one ace is still 11
+	return aceCount > 0 && total <= 21
 }
 
 func (h Hand) IsPair() bool {

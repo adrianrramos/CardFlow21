@@ -24,6 +24,11 @@ func PlayHandWithStrategyDetailed(shoe *Shoe, strat Strategy) HandResult {
 		HandsInRound: 1,
 	}
 
+	// Blackjack resolution order (must check in this order):
+	// 1. Both blackjack → push (0.0)
+	// 2. Player blackjack → win 3:2 (+1.5)
+	// 3. Dealer blackjack → lose (-1.0)
+	// No double/split allowed after blackjack - resolve immediately
 	if player.IsBlackjack() && dealer.IsBlackjack() {
 		result.PlayerBlackjack = true
 		result.DealerBlackjack = true
@@ -59,7 +64,13 @@ func PlayHandWithStrategyDetailed(shoe *Shoe, strat Strategy) HandResult {
 	// Detect pair opportunity BEFORE strategy decision
 	if player.IsPair() && len(player.Cards) == 2 {
 		result.PairOpportunity = true
-		result.PairRank = int(player.Cards[0].Rank)
+		rank := int(player.Cards[0].Rank)
+		// Normalize: 10/J/Q/K (ranks 10-13) → rank 10
+		if rank >= 10 {
+			result.PairRank = 10
+		} else {
+			result.PairRank = rank
+		}
 		result.DealerUpCard = dealer.Cards[0]
 	}
 
@@ -109,7 +120,13 @@ func PlayHandWithStrategyDetailed(shoe *Shoe, strat Strategy) HandResult {
 	result.DealerBust = dealer.IsBust
 	result.DealerValue = dealer.Value()
 
-	// Evaluate all hands
+	// Evaluate all hands (split hands evaluated independently)
+	// Split accounting validation:
+	// - Each split hand wagers 1 unit independently (base wager)
+	// - Doubled hands wager 2 units
+	// - Profit/loss calculated per hand and summed
+	// - TotalWagered accumulates all wagers correctly
+	// - No missing loss registration - busts, losses, and pushes all handled
 	total_profit := 0.0
 	total_wagered := 0.0
 	for _, hand := range hand_queue {
@@ -135,6 +152,7 @@ func PlayHandWithStrategyDetailed(shoe *Shoe, strat Strategy) HandResult {
 		if hand.Value() < dealer.Value() {
 			total_profit -= wagered
 		}
+		// Note: Push (equal values) results in 0 profit, correctly handled
 	}
 
 	result.Profit = total_profit
