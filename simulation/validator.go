@@ -61,12 +61,16 @@ func (v *Validator) CompareMetrics(stats *Stats) []Deviation {
 		return deviations
 	}
 
-	// EV comparison
-	evDiff := stats.Mean - v.Baseline.EV
+	// EV comparison - use HouseEdge (per-wager) for true comparison
+	evActual := stats.Mean
+	if stats.TotalWagered > 0 {
+		evActual = stats.HouseEdge
+	}
+	evDiff := evActual - v.Baseline.EV
 	deviations = append(deviations, Deviation{
-		Metric:     "EV",
+		Metric:     "House Edge",
 		Expected:   v.Baseline.EV,
-		Actual:     stats.Mean,
+		Actual:     evActual,
 		Difference: evDiff,
 		PercentDiff: (evDiff / math.Abs(v.Baseline.EV)) * 100,
 	})

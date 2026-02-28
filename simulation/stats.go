@@ -10,6 +10,7 @@ type Stats struct {
 	TotalHands    int
 	Profit        float64
 	Mean          float64
+	HouseEdge     float64 // True house edge: Profit / TotalWagered
 	M2            float64
 	DoubleWin     int
 	DoubleLoss    int
@@ -148,6 +149,11 @@ func (s *Stats) UpdateDetailed(result engine.HandResult) {
 	delta := result.Profit - s.Mean
 	s.Mean += delta / float64(s.TotalHands)
 	s.M2 += delta * (result.Profit - s.Mean)
+	
+	// Calculate true house edge: Profit / TotalWagered
+	if s.TotalWagered > 0 {
+		s.HouseEdge = s.Profit / s.TotalWagered
+	}
 }
 
 func (s *Stats) Variance() float64 {
@@ -202,7 +208,11 @@ func (s *Stats) PrintMetrics() {
 	fmt.Printf("Total Rounds: %d\n", s.TotalHands)
 	fmt.Printf("Total Hands: %d\n", s.TotalHandsInRounds)
 	fmt.Printf("Profit: %.2f\n", s.Profit)
+	fmt.Printf("Total Wagered: %.2f\n", s.TotalWagered)
 	fmt.Printf("EV/Hand: %.6f\n", s.Mean)
+	if s.TotalWagered > 0 {
+		fmt.Printf("House Edge: %.6f (%.4f%%)\n", s.HouseEdge, s.HouseEdge*100.0)
+	}
 	fmt.Printf("Std Dev: %.6f\n", s.StdDev())
 	varianceValid, varianceMsg := s.ValidateVariance()
 	if varianceValid {
