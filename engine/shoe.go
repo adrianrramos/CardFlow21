@@ -12,6 +12,7 @@ type Shoe struct {
 
 	decks int
 	penetration float64
+	count int
 }
 
 func init() {
@@ -46,7 +47,7 @@ func (s *Shoe) init() {
 
 	cut := int(math.Round(float64(len(s.cards)) * s.penetration))
 	s.cut_card_position = len(s.cards) - cut
-
+	s.count = 0
 }
 
 func (s *Shoe) Draw() Card {
@@ -57,5 +58,14 @@ func (s *Shoe) Draw() Card {
 
 	card := s.cards[len(s.cards)-1]
 	s.cards = s.cards[:len(s.cards)-1]
+	s.updateHiLoCount(card)
 	return card
+}
+
+func (s *Shoe) updateHiLoCount(card Card) {
+	if card.Rank >= 2 && card.Rank <= 6 {
+		s.count++
+	} else if card.Rank >= 10 || card.Rank == 1 {
+		s.count--
+	}
 }

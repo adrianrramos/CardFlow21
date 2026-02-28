@@ -46,7 +46,8 @@ func (h Hand) IsSoft() bool {
 }
 
 func (h Hand) IsPair() bool {
-	return len(h.Cards) == 2 && h.Cards[0].Rank == h.Cards[1].Rank
+	// Use Index() to compare the rank of the cards instead of Rank directly
+	return len(h.Cards) == 2 && h.Cards[0].Index() == h.Cards[1].Index()
 }
 
 func (h Hand) IsTwoCardTotal() bool {
