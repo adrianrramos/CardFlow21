@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 	"math"
+	"strings"
 )
 
 func main() {
@@ -14,6 +15,8 @@ func main() {
 	decks := flag.Int("decks", 6, "number of decks in the shoe")
 	penetration := flag.Float64("penetration", .85, "% of shoe before cut card comes out")
 	noAdvanced := flag.Bool("no-advanced", false, "disable doubles and splits for baseline testing")
+	traceBlackjacks := flag.Bool("trace-blackjacks", false, "trace 50 blackjack hands for payout validation")
+	diagnostic := flag.Bool("diagnostic", false, "enable diagnostic mode with phase-by-phase validation")
 	flag.Parse()
 
 	var strat engine.Strategy = strategy.NewBasicStrategy()
@@ -21,9 +24,70 @@ func main() {
 		strat = strategy.NewNoAdvancedStrategy(strat)
 	}
 
-	stats := simulation.RunSimulationWithStrategy(*rounds, *decks, *penetration, strat)
+	var stats simulation.Stats
+	var handResults []engine.HandResult
+	
+	if *traceBlackjacks {
+		stats, handResults = simulation.RunSimulationWithTracing(*rounds, *decks, *penetration, strat)
+	} else {
+		stats = simulation.RunSimulationWithStrategy(*rounds, *decks, *penetration, strat)
+	}
 
 	stats.PrintMetrics()
+
+	// Phase 1: Core Statistics Validation Table
+	if *diagnostic {
+		fmt.Println("\n=== Phase 1: Core Statistics Validation ===")
+		validator := simulation.NewValidator()
+		deviations := validator.CompareMetrics(&stats)
+		
+		fmt.Println("\nMetric Comparison Table:")
+		fmt.Printf("%-30s %12s %12s %12s %10s\n", "Metric", "Expected", "Actual", "Difference", "Status")
+		fmt.Println(strings.Repeat("-", 80))
+		for _, d := range deviations {
+			status := "✓"
+			if math.Abs(d.PercentDiff) > 2.0 {
+				status = "✗ >2%"
+			}
+			fmt.Printf("%-30s %12.6f %12.6f %12.6f %10s\n", 
+				d.Metric, d.Expected, d.Actual, d.Difference, status)
+		}
+	}
+
+	// Phase 2: Blackjack payout validation
+	if *traceBlackjacks {
+		traces := simulation.TraceBlackjacks(handResults, 50)
+		simulation.PrintBlackjackTraces(traces)
+		
+		validator := simulation.NewValidator()
+		valid, mismatches := validator.ValidateBlackjackPayouts(traces)
+		if !valid {
+			fmt.Printf("\n*** BLACKJACK PAYOUT VALIDATION FAILED: %d mismatches found ***\n", len(mismatches))
+		} else {
+			fmt.Println("\n✓ Blackjack payout validation passed")
+		}
+	}
+
+	// Phase 3: Split logic validation (diagnostic mode)
+	if *diagnostic && !*noAdvanced {
+		splitValidator := simulation.NewSplitValidator(&stats)
+		splitValidator.ValidateSplitDecisions()
+		splitValidator.CalculateSplitEV()
+		splitValidator.ValidateDAS()
+		splitValidator.ValidateResplitRules()
+	}
+
+	// Phase 5: Strategy matrix validation (diagnostic mode)
+	if *diagnostic {
+		strategyValidator := simulation.NewStrategyValidator()
+		strategyValidator.ValidateHardTotals()
+		strategyValidator.ValidateSoftTotals()
+		strategyValidator.ValidatePairSplits()
+		strategyValidator.ValidateDoubleRules()
+	}
+
+	// Phase 6: Variance validation (always shown in metrics)
+	// Variance validation is included in PrintMetrics() output
 
 	if !*noAdvanced {
 		fmt.Println("\n--- Validation vs Theoretical Baseline ---")

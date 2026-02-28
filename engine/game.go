@@ -30,6 +30,7 @@ func PlayHandWithStrategyDetailed(shoe *Shoe, strat Strategy) HandResult {
 		result.Profit = 0.0
 		result.PlayerValue = 21
 		result.DealerValue = 21
+		result.TotalWagered = 1.0
 		return result
 	}
 
@@ -38,6 +39,7 @@ func PlayHandWithStrategyDetailed(shoe *Shoe, strat Strategy) HandResult {
 		result.Profit = 1.5
 		result.PlayerValue = 21
 		result.DealerValue = dealer.Value()
+		result.TotalWagered = 1.0
 		return result
 	}
 
@@ -46,12 +48,20 @@ func PlayHandWithStrategyDetailed(shoe *Shoe, strat Strategy) HandResult {
 		result.Profit = -1.0
 		result.PlayerValue = player.Value()
 		result.DealerValue = 21
+		result.TotalWagered = 1.0
 		return result
 	}
 
 	// TODO: place bet for insurance and resolve insurance bet here
 	// if dealer.OffersInsurance() {
 	// }
+
+	// Detect pair opportunity BEFORE strategy decision
+	if player.IsPair() && len(player.Cards) == 2 {
+		result.PairOpportunity = true
+		result.PairRank = int(player.Cards[0].Rank)
+		result.DealerUpCard = dealer.Cards[0]
+	}
 
 	hand_queue := []*Hand{ player } 
 	// create a loop that executes moves for each hand in the list
@@ -101,12 +111,14 @@ func PlayHandWithStrategyDetailed(shoe *Shoe, strat Strategy) HandResult {
 
 	// Evaluate all hands
 	total_profit := 0.0
+	total_wagered := 0.0
 	for _, hand := range hand_queue {
 		wagered := 1.0
 		if hand.IsDoubled {
 			wagered = 2.0
 			result.WasDoubled = true
 		}
+		total_wagered += wagered
 
 		if hand.IsBust {
 			result.PlayerBust = true
@@ -126,6 +138,7 @@ func PlayHandWithStrategyDetailed(shoe *Shoe, strat Strategy) HandResult {
 	}
 
 	result.Profit = total_profit
+	result.TotalWagered = total_wagered
 	result.PlayerValue = hand_queue[0].Value()
 	return result
 }

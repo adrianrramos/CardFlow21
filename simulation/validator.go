@@ -225,3 +225,16 @@ func (v *Validator) PrintDeviations(stats *Stats) {
 			d.Metric, d.Expected, d.Actual, d.Difference, d.PercentDiff, marker)
 	}
 }
+
+// ValidateBlackjackPayouts validates blackjack payout logic
+func (v *Validator) ValidateBlackjackPayouts(traces []HandTracer) (bool, []HandTracer) {
+	mismatches := []HandTracer{}
+	
+	for _, trace := range traces {
+		if !trace.Match {
+			mismatches = append(mismatches, trace)
+		}
+	}
+	
+	return len(mismatches) == 0, mismatches
+}
