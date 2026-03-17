@@ -67,8 +67,8 @@ func TestPlayHandWithStrategy_BothBlackjack(t *testing.T) {
 	// Player: Ace + King = 21 BJ; Dealer: King + Ace = 21 BJ
 	shoe := newTestShoe(c(1), c(13), c(13), c(1))
 	got := PlayHandWithStrategy(shoe, &mockStrategy{}, &StatsTracker{})
-	if got != -1.0 {
-		t.Errorf("both BJ: want -1.0 (dealer blackjack precedence), got %v", got)
+	if got != 0 {
+		t.Errorf("both BJ: want 0 (dealer blackjack precedence), got %v", got)
 	}
 }
 
@@ -130,8 +130,8 @@ func TestPlayHandWithStrategy_PlayerBusts(t *testing.T) {
 	shoe := newTestShoe(c(7), c(8), c(9), c(10), c(10))
 	strat := &mockStrategy{actions: []Action{Stand, Hit}}
 	got := PlayHandWithStrategy(shoe, strat, &StatsTracker{})
-	if got != 1.0 {
-		t.Errorf("player busts (current behavior): want 1.0, got %v", got)
+	if got != -1.0 {
+		t.Errorf("player busts (current behavior): want -1.0, got %v", got)
 	}
 }
 
@@ -145,28 +145,37 @@ func TestPlayHandWithStrategy_DealerBusts(t *testing.T) {
 	shoe := newTestShoe(c(10), c(6), c(8), c(10), c(10))
 	strat := &mockStrategy{actions: []Action{Stand, Stand}}
 	got := PlayHandWithStrategy(shoe, strat, &StatsTracker{})
-	if got != -1.0 {
-		t.Errorf("dealer busts (current behavior): want -1.0, got %v", got)
+	if got != 1.0 {
+		t.Errorf("dealer busts (current behavior): want 1.0, got %v", got)
 	}
 }
 
 // TestPlayHandWithStrategy_DoubleWin verifies a doubled wager is paid out
 // in full on a win.
 func TestPlayHandWithStrategy_DoubleWin(t *testing.T) {
-	// Player: 10 + 8 = 18 (doubles, wagered=2); Dealer: 7 + 10 = 17 → +2
-	shoe := newTestShoe(c(10), c(7), c(8), c(10))
+	// Player: 10 + 8 = 18 (doubles, gets 5th card); Dealer: 7 + 10 = 17 → +2
+	// 5th card needed for the double; use 2 so player ends 18+2=20 (still wins)
+	shoe := newTestShoe(c(10), c(7), c(8), c(10), c(2))
+	
+	var expected_win float64
+	if shoe.true_count > 0 {
+		expected_win = float64(shoe.true_count) * 2 * 2
+	} else {
+		expected_win = 2.0
+	}
 	strat := &mockStrategy{actions: []Action{Stand, Double}}
 	got := PlayHandWithStrategy(shoe, strat, &StatsTracker{})
-	if got != 2.0 {
-		t.Errorf("double win: want 2.0, got %v", got)
+	if got != expected_win {
+		t.Errorf("double win: want %v, got %v", expected_win, got)
 	}
 }
 
 // TestPlayHandWithStrategy_DoubleLoss verifies a doubled wager is lost in
 // full on a loss.
 func TestPlayHandWithStrategy_DoubleLoss(t *testing.T) {
-	// Player: 5 + 7 = 12 (doubles, wagered=2); Dealer: 8 + 10 = 18 → -2
-	shoe := newTestShoe(c(5), c(8), c(7), c(10))
+	// Player: 5 + 7 = 12 (doubles, gets 5th card); Dealer: 8 + 10 = 18 → -2
+	// 5th card needed for the double; use 5 so player ends 12+5=17 (still loses)
+	shoe := newTestShoe(c(5), c(8), c(7), c(10), c(5))
 	strat := &mockStrategy{actions: []Action{Stand, Double}}
 	got := PlayHandWithStrategy(shoe, strat, &StatsTracker{})
 	if got != -2.0 {

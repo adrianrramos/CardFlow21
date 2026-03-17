@@ -1,5 +1,7 @@
 package engine
 
+// import "fmt"
+
 // TODO: might want to move Strategy interface
 type Strategy interface {
 	Decide(player Hand, dealerUpCard Card) Action
@@ -8,12 +10,20 @@ type Strategy interface {
 
 type StatsTracker struct {
 	TotalHands int
-	DoubleWin int
+	DoubleWin  int
 	DoubleLoss int
 	SplitHands int
 }
 
-func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker) (float64) {
+func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker) float64 {
+	var wagered int
+	if shoe.true_count > 0 {
+		wagered = shoe.true_count * 2
+		// fmt.Println("Wagered: ", wagered)
+	} else {
+		wagered = 1
+	}
+
 	statsTracker.TotalHands++
 	player := &Hand{}
 	dealer := &Hand{}
@@ -24,18 +34,22 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker
 	dealer.AddCard(shoe.Draw())
 
 	if player.IsBlackjack() && !dealer.IsBlackjack() {
-		return 1.5
+		return float64(wagered) * 1.5
 	} else if player.IsBlackjack() && dealer.IsBlackjack() {
 		return 0
-	} else if !player.IsBlackjack() && dealer.IsBlackjack() {
-		return -1
 	}
 
 	// TODO: place bet for insurance and resolve insurance bet here
-	// if dealer.OffersInsurance() {
-	// }
+	if dealer.OffersInsurance() {
+		if shoe.true_count > 3 && dealer.IsBlackjack() {
+			return 0
+		}
+	}
+	if dealer.IsBlackjack() {
+		return float64(-wagered)
+	}
 
-	hand_queue := []*Hand{ player } 
+	hand_queue := []*Hand{player}
 	// create a loop that executes moves for each hand in the list
 	// if more hands are added to the list (ie, splitting or other players)
 	// keep executing each hand
@@ -79,42 +93,37 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker
 	}
 	dealer.CheckBust()
 
+
 	// Evaluate all hands
 	total_profit := 0
 	for _, hand := range hand_queue {
-		wagered := 1
-		if hand.IsDoubled {
-			wagered *= 2
-		}
-
 		if hand.IsBust {
 			total_profit -= wagered
 			continue
 		}
+		// TODO: missing payouts for doubled hands (currently does not 2x the wager)
 		if dealer.IsBust {
-			total_profit += wagered
 			if hand.IsDoubled {
 				statsTracker.DoubleWin++
 			}
 			continue
 		}
 		if hand.Value() > dealer.Value() {
-			total_profit += wagered
 			if hand.IsDoubled {
 				statsTracker.DoubleWin++
 			}
+			total_profit += wagered
 		}
 		if hand.Value() < dealer.Value() {
-			total_profit -= wagered
 			if hand.IsDoubled {
 				statsTracker.DoubleLoss++
 			}
+			total_profit -= wagered
 		}
 	}
 
 	return float64(total_profit)
 }
-
 
 // Takes a valid hand that cant split and plays it out until it busts or stands
 func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {

@@ -13,6 +13,7 @@ type Shoe struct {
 	decks int
 	penetration float64
 	count int
+	true_count int
 }
 
 func init() {
@@ -63,9 +64,15 @@ func (s *Shoe) Draw() Card {
 }
 
 func (s *Shoe) updateHiLoCount(card Card) {
+	decks_remaining := len(s.cards) / 52
+	if decks_remaining == 0 {
+		decks_remaining = 1
+	}
 	if card.Rank >= 2 && card.Rank <= 6 {
 		s.count++
+		s.true_count = s.count / decks_remaining
 	} else if card.Rank >= 10 || card.Rank == 1 {
 		s.count--
+		s.true_count = s.count / decks_remaining
 	}
 }
