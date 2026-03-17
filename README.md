@@ -1,18 +1,31 @@
-# TODO:
-### P1
-    - TODO: missing logic for splitting Ace's -> split aces can only take ONE more card
-    - TODO: fix splitting for mismatching pairs (ie, 12 & 13, 10 & 11 etc.)
-    - TODO: add composer's metrics library 
-    - TODO: Improve EV Calculations -> total wagered not total hands 
+# CardFlow21
 
-### P2
-    - Add proper wagers, payouts, and bankroll
-    - Add Insurance logic
-    - Add calculations for n0
-    - Work on adding other players to the table
-    - Work on adding bet spreads
-    - Work on adding BJA Deviations
+CardFlow21 is a blackjack engine and simulation toolkit focused on analyzing expected value (EV) and betting strategies for multi-deck H17 games. It provides a rules-accurate game engine, a basic strategy module, and a simulation runner for exploring long‑run performance of different play and bet schemes.
 
-### P3
-    - Deviations
-    - Different count systems
+## Features
+
+- **Blackjack engine**  
+  - Multi-deck shoe with configurable deck count and penetration  
+  - Dealer H17 rules (dealer hits soft 17)  
+  - Standard actions: hit, stand, double, split, (future: surrender, insurance)  
+
+- **Strategy module**  
+  - Basic strategy for DAS, H17, 4+ deck games  
+  - Pluggable strategy interface for custom decision logic
+
+- **Simulation runner**  
+  - Command-line entrypoint to run large numbers of hands  
+  - Hi-Lo counting with true count support for bet sizing experiments  
+  - Basic statistics: total profit, EV per hand, variance-related measures
+
+## Usage
+
+From the project root:
+
+```bash
+go run ./cmd \
+  -rounds 100000 \
+  -decks 6 \
+  -penetration 0.85 \
+  -use_true_count
+```
