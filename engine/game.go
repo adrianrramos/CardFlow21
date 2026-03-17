@@ -15,11 +15,10 @@ type StatsTracker struct {
 	SplitHands int
 }
 
-func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker) float64 {
+func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_count bool) float64 {
 	var wagered int
-	if shoe.true_count > 0 {
+	if use_true_count && shoe.true_count > 0 {
 		wagered = shoe.true_count * 2
-		// fmt.Println("Wagered: ", wagered)
 	} else {
 		wagered = 1
 	}
