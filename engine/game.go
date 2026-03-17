@@ -1,5 +1,7 @@
 package engine
 
+import "fmt"
+
 // import "fmt"
 
 // TODO: might want to move Strategy interface
@@ -38,11 +40,11 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker
 		return 0
 	}
 
-	// TODO: place bet for insurance and resolve insurance bet here
 	if dealer.OffersInsurance() {
 		if shoe.true_count > 3 && dealer.IsBlackjack() {
 			return 0
-		}
+		} 
+		// TODO: need to handle alternative where player loses insurance bet
 	}
 	if dealer.IsBlackjack() {
 		return float64(-wagered)
@@ -96,15 +98,19 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker
 	// Evaluate all hands
 	total_profit := 0
 	for _, hand := range hand_queue {
+		if hand.IsDoubled {
+			wagered *= 2
+		}
+
 		if hand.IsBust {
 			total_profit -= wagered
 			continue
 		}
-		// TODO: missing payouts for doubled hands (currently does not 2x the wager)
 		if dealer.IsBust {
 			if hand.IsDoubled {
 				statsTracker.DoubleWin++
 			}
+			total_profit += wagered
 			continue
 		}
 		if hand.Value() > dealer.Value() {
@@ -112,44 +118,51 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker
 				statsTracker.DoubleWin++
 			}
 			total_profit += wagered
-		}
-		if hand.Value() < dealer.Value() {
+		} else if hand.Value() < dealer.Value() {
 			if hand.IsDoubled {
 				statsTracker.DoubleLoss++
 			}
 			total_profit -= wagered
 		}
+		// Push if values are equal
 	}
 
 	return float64(total_profit)
 }
 
-// Takes a valid hand that cant split and plays it out until it busts or stands
+/*
+	PlayOutHand
+	player: Hand to play out
+	dealer: Dealer's hand to access up card and value
+	strat: Strategy to use
+	shoe: Shoe to use
+
+	This method when given a valid hand will play it out until it busts or stands
+	The state of the hand is set on the hand object itself and can be accessed by 
+	the caller to determine if the hand was busted or not.
+
+	Only hitting, standing, and doubling are supported; because splitting and surrendering 
+	effect the state of the game, so they are handled by the caller.
+*/
 func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {
 	for {
 		action := strat.Decide(*player, dealer.Cards[0])
 		
-		// TODO: Double and Split feature not ready 
-		if action == Double {
+		switch action {
+		case Double:
 			player.Doubled()
 			player.AddCard(shoe.Draw())
-			break
-		}
-		
-		if action == Split {
-			action = Hit
-		}
-
-		if action == Stand {
 			return
-		}
-
-		if action == Hit {
+		case Hit, Split: // Splittable hand should be treated as hard value
 			player.AddCard(shoe.Draw())
 			if player.CheckBust() {
 				return
 			}
+		case Stand: 
+			return
+		case Surrender:
+			fmt.Println("Surrender not supported yet")
+			return
 		}
 	}
-
 }

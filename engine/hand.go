@@ -54,6 +54,7 @@ func (h Hand) IsTwoCardTotal() bool {
 	return len(h.Cards) == 2
 }
 
+// TODO: merge this function with IsBust() ? 
 func (h *Hand) CheckBust() bool {
 	h.IsBust = h.Value() > 21
 	return h.IsBust

@@ -90,7 +90,6 @@ func (b *BasicStrategy) Decide(player engine.Hand, dealerUpCard engine.Card) eng
 	}
 
 
-	// TODO: Feature not ready
 	// PAIR SPLITTING
 	if player.IsPair() && Chart[Splits][player.Cards[0].Value()][dealerUpCard.Index()] == "Y" {
 		return engine.Split
