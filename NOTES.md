@@ -15,7 +15,6 @@
 
 ### P1 – High Priority
 
-- [ ] Pause shuffle until hand is complete after cut card comes out  
 - [ ] Add missing logic for splitting Aces (split Aces can only take ONE more card)  
 - [ ] Add Composer’s metrics library on `agent-fix-1` branch
 - [ ] Improve EV calculations (use total **wagered** instead of total hands)  

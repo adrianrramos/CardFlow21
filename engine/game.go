@@ -127,6 +127,11 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker
 		// Push if values are equal
 	}
 
+	// Shuffle the shoe if the cut card has been dealt
+	if shoe.cut_card_out {
+		shoe.ShuffleShoe()
+	}
+
 	return float64(total_profit)
 }
 

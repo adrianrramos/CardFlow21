@@ -8,17 +8,16 @@ import (
 
 type Shoe struct {
 	cards []Card
-	cut_card_position int
-
 	decks int
 	penetration float64
+	cut_card_position int
+	cut_card_out bool
 	count int
 	true_count int
 }
 
-func init() {
-	rand.Seed(time.Now().UnixNano())
-}
+// rng is a package-level random source used for shuffling shoes.
+var rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 func NewShoe(decks int, penetration float64) *Shoe {
 	if penetration < 0 {
@@ -35,6 +34,7 @@ func NewShoe(decks int, penetration float64) *Shoe {
 
 func (s *Shoe) init() {
 	s.cards = make([]Card, 0, s.decks*52)
+	s.cut_card_out = false
 	for d := 0; d < s.decks; d++ {
 		for suit := 0; suit < 4; suit++ {
 			for rank := 1; rank <= 13; rank++ {
@@ -42,7 +42,7 @@ func (s *Shoe) init() {
 			}
 		}
 	}
-	rand.Shuffle(len(s.cards), func(i, j int) {
+	rng.Shuffle(len(s.cards), func(i, j int) {
 		s.cards[i], s.cards[j] = s.cards[j], s.cards[i]
 	})
 
@@ -51,10 +51,17 @@ func (s *Shoe) init() {
 	s.count = 0
 }
 
+func (s *Shoe) ShuffleShoe() {
+	s.init()
+}
+
 func (s *Shoe) Draw() Card {
-	// TODO: shuffle the deck on the next hand after the cut card comes out
-	if len(s.cards) == 0 || len(s.cards) <= s.cut_card_position  {
-		s.init()
+	if len(s.cards) <= s.cut_card_position  {
+		s.cut_card_out = true
+	}
+
+	if len(s.cards) == 0 {
+		s.ShuffleShoe()
 	}
 
 	card := s.cards[len(s.cards)-1]
