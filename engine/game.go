@@ -15,6 +15,7 @@ type StatsTracker struct {
 	DoubleWin  int
 	DoubleLoss int
 	SplitHands int
+	TotalWagered int
 }
 
 func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_count bool) float64 {
@@ -132,6 +133,7 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker
 		shoe.ShuffleShoe()
 	}
 
+	statsTracker.TotalWagered += wagered
 	return float64(total_profit)
 }
 
