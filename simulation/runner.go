@@ -11,7 +11,7 @@ func RunSimulation(rounds int, decks int, penetration float64, use_true_count bo
 	strat := strategy.NewBasicStrategy(strategy_name)
 	statsTracker := engine.StatsTracker{}
 	for i := 0; i < rounds; i++ {
-		result := engine.PlayHandWithStrategy(shoe, strat, &statsTracker, use_true_count)
+		result := engine.PlayRound(shoe, strat, &statsTracker, use_true_count)
 		stats.Update(result)
 	}
 

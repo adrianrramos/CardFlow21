@@ -18,7 +18,7 @@ type StatsTracker struct {
 	TotalWagered int
 }
 
-func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_count bool) float64 {
+func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_count bool) float64 {
 	var wagered int
 	if use_true_count && shoe.true_count > 0 {
 		wagered = shoe.true_count * 2
@@ -51,15 +51,15 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker
 		return float64(-wagered)
 	}
 
-	hand_queue := []*Hand{player}
+	hands_stack := []*Hand{player}
 	// create a loop that executes moves for each hand in the list
 	// if more hands are added to the list (ie, splitting or other players)
 	// keep executing each hand
 	finished_hands := 0
-	for finished_hands < len(hand_queue) {
-		q_length := len(hand_queue)
+	for finished_hands < len(hands_stack) {
+		q_length := len(hands_stack)
 		for i := 0; i < q_length; i++ {
-			current_hand := hand_queue[i]
+			current_hand := hands_stack[i]
 
 			// Check if hand was split and needs to be dealt a card
 			if len(current_hand.Cards) < 2 {
@@ -69,22 +69,19 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker
 			// Lookup action to catch any splits
 			action := strat.Decide(*current_hand, dealer.Cards[0])
 			if action == Split && current_hand.SplitCount < 4 && current_hand.IsPair() {
-				statsTracker.SplitHands++
-				statsTracker.TotalHands++
+				statsTracker.SplitHands++; statsTracker.TotalHands++
 				new_hand := &Hand{}
 				new_hand.AddCard(current_hand.Cards[1])
 				current_hand.RemoveCard()
 
 				nextSplitCount := current_hand.SplitCount + 1
-				current_hand.SplitCount = nextSplitCount
-				new_hand.SplitCount = nextSplitCount
+				current_hand.SplitCount, new_hand.SplitCount = nextSplitCount, nextSplitCount
 
-				hand_queue = append(hand_queue, new_hand)
-				hand_queue[i] = current_hand
+				hands_stack = append(hands_stack, new_hand)
 				continue // Start over with the new hand
 			}
 
-			PlayOutHand(hand_queue[i], dealer, strat, shoe)
+			PlayOutHand(hands_stack[i], dealer, strat, shoe)
 			finished_hands++
 		}
 	}
@@ -98,32 +95,36 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker
 
 	// Evaluate all hands
 	total_profit := 0
-	for _, hand := range hand_queue {
+	for _, hand := range hands_stack {
+		var hand_wager int
 		if hand.IsDoubled {
-			wagered *= 2
+			hand_wager = wagered * 2
+		} else {
+			hand_wager = wagered
 		}
+		statsTracker.TotalWagered += hand_wager
 
 		if hand.IsBust {
-			total_profit -= wagered
+			total_profit -= hand_wager
 			continue
 		}
 		if dealer.IsBust {
 			if hand.IsDoubled {
 				statsTracker.DoubleWin++
 			}
-			total_profit += wagered
+			total_profit += hand_wager
 			continue
 		}
 		if hand.Value() > dealer.Value() {
 			if hand.IsDoubled {
 				statsTracker.DoubleWin++
 			}
-			total_profit += wagered
+			total_profit += hand_wager
 		} else if hand.Value() < dealer.Value() {
 			if hand.IsDoubled {
 				statsTracker.DoubleLoss++
 			}
-			total_profit -= wagered
+			total_profit -= hand_wager
 		}
 		// Push if values are equal
 	}
@@ -133,7 +134,6 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker
 		shoe.ShuffleShoe()
 	}
 
-	statsTracker.TotalWagered += wagered
 	return float64(total_profit)
 }
 
@@ -152,6 +152,10 @@ func PlayHandWithStrategy(shoe *Shoe, strat Strategy, statsTracker *StatsTracker
 	effect the state of the game, so they are handled by the caller.
 */
 func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {
+	if player.SplitCount >= 1 && player.IsSoft() {
+		return
+	}
+
 	for {
 		action := strat.Decide(*player, dealer.Cards[0])
 		
