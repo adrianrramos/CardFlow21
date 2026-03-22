@@ -2,32 +2,9 @@
 
 ## 🔴 1. Payout & Resolution (CRITICAL)
 
-### Blackjack payout
-- [x] Pays exactly **3:2 (1.5x bet)**
-- [ ] Only applies to **natural blackjack (2 cards)**
-- [ ] Not applied to:
-  - [ ] Split hands
-  - [ ] 3+ card 21
-
-### Standard outcomes
-- [ ] Win pays **1:1**
-- [ ] Loss removes full bet
-- [ ] Push returns bet only
-
-### Double down
-- [ ] Bet is **doubled before resolution**
-- [ ] Win pays **2x total bet**
-- [ ] Loss loses **2x bet**
-- [ ] Only **one card drawn**
-
-### Surrender
-- [ ] Returns **exactly half the bet**
-- [ ] Ends hand immediately
-- [ ] Only allowed as **first action**
-- [ ] Not allowed after hit
-
+*Still work in progress because insurance is NOT Basic Strategy*
 ### Insurance
-- [ ] Only offered when dealer shows **Ace**
+- [x] Only offered when dealer shows **Ace**
 - [ ] Costs **0.5x bet**
 - [ ] Pays **2:1** if dealer has blackjack
 - [ ] Lost otherwise

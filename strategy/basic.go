@@ -88,13 +88,6 @@ var BJAChart BasicStrategyChart = BasicStrategyChart{
 		17: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "Y"},
 		16: {"N", "N", "N", "N", "N", "N", "N", "Y", "Y", "Y"},
 		15: {"N", "N", "N", "N", "N", "N", "N", "N", "Y", "N"},
-		14: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
-		13: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
-		12: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
-		11: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
-		10: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
-		9:  {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
-		8:  {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
 	},
 }
 
@@ -141,12 +134,6 @@ var BJ101AppChart BasicStrategyChart = BasicStrategyChart{
 		17: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "Y"},
 		16: {"N", "N", "N", "N", "N", "N", "N", "Y", "Y", "Y"},
 		15: {"N", "N", "N", "N", "N", "N", "N", "N", "Y", "N"},
-		14: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
-		13: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
-		12: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
-		11: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
-		10: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
-		9:  {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
 	},
 }
 
@@ -215,7 +202,7 @@ func (b *BasicStrategy) CheckSurrenderChart(player engine.Hand, dealerUpCard eng
 		panic("Invalid strategy name")
 	}
 
-	if player.Value() < 9 ||  player.Value() > 17 {
+	if player.Value() < 15 ||  player.Value() > 17 {
 		return false
 	}
 

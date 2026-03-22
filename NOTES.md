@@ -1,21 +1,11 @@
 # CardFlow21 – Working Notes
 
-## Current Focus
-
-- **Engine correctness**
-  - Finish core H17 blackjack rules
-  - Stabilize splitting (including 10-valued pairs and Aces)
-  - Make payouts and EV calculations reflect real wagers
-
-- **Simulation quality**
-  - Use more realistic betting schemes (true count, bet spreads, bankroll)
-  - Experiment with alternative basic strategy charts and deviations
-
 ## TODOs
 
 ### P1 – High Priority
 
 - [ ] Do a [SANITY_CHECK](SANITY_CHECK.md) walkthrough
+- [ ] Double check logic for pair of 8's is not being pre-maturely surrendered 
 - [ ] Add Some of Composer’s metrics library on `agent-fix-1` branch
 - [ ] Try another basic strategy chart and compare outcomes
 
@@ -32,6 +22,18 @@
 
 - [ ] Broader deviation set beyond BJA baseline  
 - [ ] Support different count systems (e.g. KO, Zen, Hi-Opt II, CAC2)
+
+## Current Focus
+
+- **Engine correctness**
+  - Finish core H17 blackjack rules
+  - Stabilize splitting (including 10-valued pairs and Aces)
+  - Make payouts and EV calculations reflect real wagers
+
+- **Simulation quality**
+  - Use more realistic betting schemes (true count, bet spreads, bankroll)
+  - Experiment with alternative basic strategy charts and deviations
+
 
 
 ## Scratchpad

@@ -62,7 +62,7 @@ func (h *Hand) Doubled() {
 
 func (h *Hand) IsPair() bool {
 	// Use Index() to compare the rank of the cards instead of Rank directly
-	return len(h.Cards) == 2 && h.Cards[0].Index() == h.Cards[1].Index()
+	return len(h.Cards) == 2 && h.Cards[0].Value() == h.Cards[1].Value()
 }
 
 func (h *Hand) IsTwoCardTotal() bool {

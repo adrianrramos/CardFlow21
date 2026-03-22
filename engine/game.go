@@ -38,11 +38,11 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 
 	if shouldSurrender := strat.CheckSurrenderChart(*player, dealer.Cards[0]); shouldSurrender {
 		statsTracker.Surrendered++
-		return wagered / 2
+		return (wagered / 2) * -1.0 // surrendering causes player to LOSE half their bet
 	}
 
 	if player.IsBlackjack() && !dealer.IsBlackjack() {
-		return float64(wagered) * 1.5
+		return wagered * 1.5
 	} else if player.IsBlackjack() && dealer.IsBlackjack() {
 		return 0
 	}
@@ -73,13 +73,15 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 		for i := 0; i < q_length; i++ {
 			current_hand := hands_stack[i]
 
-			// Check if hand was split and needs to be dealt a card
+			// Check if hand was split and needs to be dealt a second card
 			if len(current_hand.Cards) < 2 {
 				current_hand.AddCard(shoe.Draw())
 			}
 
 			// Lookup action to catch any splits
 			action := strat.Decide(*current_hand, dealer.Cards[0])
+
+			// Handle Splitting Action
 			if action == Split && current_hand.CanSplit() {
 				statsTracker.SplitHands++
 				new_hand := &Hand{}
@@ -181,8 +183,8 @@ func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {
 			}
 		case Stand:
 			return
-		case Surrender:
-			fmt.Println("Surrender not supported yet")
+		default:
+			fmt.Println("Action of: %v is not recognized", action)
 			return
 		}
 	}
