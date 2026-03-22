@@ -9,8 +9,10 @@ type Card struct {
 	Rank Rank
 }
 
+// Takes the card rank and converts to index for strategy chart column
+// ie. 2, 3, 4, ... , 10, A -> 0, 1, 2, ... 8, 9
 var RankToIndex = map[int]int{
-	1:  0, 2:  1, 3:  2, 4:  3, 5:  4, 6:  5, 7:  6, 8:  7, 9:  8, 10: 9, 11: 9, 12: 9, 13: 9,
+	2: 0, 3: 1, 4: 2, 5: 3, 6: 4, 7: 5, 8: 6, 9: 7, 10: 8, 11: 8, 12: 8, 13: 8, 1: 9,
 }
 
 func (c Card) Index() int {
