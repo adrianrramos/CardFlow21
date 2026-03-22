@@ -15,15 +15,14 @@
 
 ### P1 – High Priority
 
-- [ ] Add missing logic for splitting Aces (split Aces can only take ONE more card)  
-- [ ] Add Composer’s metrics library on `agent-fix-1` branch
-- [ ] Improve EV calculations (use total **wagered** instead of total hands)  
+- [ ] Do a [SANITY_CHECK](SANITY_CHECK.md) walkthrough
+- [ ] Add Some of Composer’s metrics library on `agent-fix-1` branch
 - [ ] Try another basic strategy chart and compare outcomes
 
 ### P2 – Medium Priority
 
 - [ ] Add proper wagers, payouts, and bankroll tracking  
-- [ ] Implement real Insurance logic (side bet, 2:1 payout, up to ½ main bet)  
+- [ ] Add kelly bets
 - [ ] Add calculations for n₀ (hands required to be ~1 SD from EV)  
 - [ ] Add support for additional players at the table  
 - [ ] Implement bet spreads (bet ramp by true count)  

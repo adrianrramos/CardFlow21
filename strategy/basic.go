@@ -4,10 +4,18 @@ import (
 	"cardflow21/engine"
 )
 
-type BasicStrategy struct{}
+type StrategyName int
+const (
+	BJA StrategyName = iota
+	BJ101App
+)
 
-func NewBasicStrategy() *BasicStrategy {
-	return &BasicStrategy{}
+type BasicStrategy struct{
+	strategy_name StrategyName
+}
+
+func NewBasicStrategy(strategy_name StrategyName) *BasicStrategy {
+	return &BasicStrategy{strategy_name: strategy_name}
 }
 
 func (b *BasicStrategy) Name() string {
@@ -15,11 +23,11 @@ func (b *BasicStrategy) Name() string {
 }
 
 type ChartType int
-
 const (
 	Hard ChartType = iota
 	Soft
 	Splits
+	Surrender
 )
 
 type BasicStrategyChart map[ChartType]map[int][]string
@@ -38,7 +46,7 @@ type UncommonChart map[ChartType]map[string]string
 // └─────────┴───────────────────────────────────────────────┘
 
 // BS for DAS, H17, 4+ Decks
-var Chart BasicStrategyChart = BasicStrategyChart{
+var BJAChart BasicStrategyChart = BasicStrategyChart{
 	// 2,  3,   4,   5,   6,   7,   8,   9,   10,  A
 	Hard: {
 		17: {"S", "S", "S", "S", "S", "S", "S", "S", "S", "S"},
@@ -75,10 +83,84 @@ var Chart BasicStrategyChart = BasicStrategyChart{
 		3:  {"Y", "Y", "Y", "Y", "Y", "Y", "N", "N", "N", "N"},
 		2:  {"Y", "Y", "Y", "Y", "Y", "Y", "N", "N", "N", "N"},
 	},
-	// TODO: add surrender table
+
+	Surrender: {
+		17: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "Y"},
+		16: {"N", "N", "N", "N", "N", "N", "N", "Y", "Y", "Y"},
+		15: {"N", "N", "N", "N", "N", "N", "N", "N", "Y", "N"},
+		14: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		13: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		12: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		11: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		10: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		9:  {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		8:  {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+	},
+}
+
+// BS for DAS, H17, 4+ Decks
+var BJ101AppChart BasicStrategyChart = BasicStrategyChart{
+	// 2,  3,   4,   5,   6,   7,   8,   9,   10,  A
+	Hard: {
+		17: {"S", "S", "S", "S", "S", "S", "S", "S", "S", "S"},
+		16: {"S", "S", "S", "S", "S", "H", "H", "H", "H", "H"},
+		15: {"S", "S", "S", "S", "S", "H", "H", "H", "H", "H"},
+		14: {"S", "S", "S", "S", "S", "H", "H", "H", "H", "H"},
+		13: {"S", "S", "S", "S", "S", "H", "H", "H", "H", "H"},
+		12: {"H", "H", "S", "S", "S", "H", "H", "H", "H", "H"},
+		11: {"D", "D", "D", "D", "D", "D", "D", "D", "D", "D"},
+		10: {"D", "D", "D", "D", "D", "D", "D", "D", "H", "H"},
+		9:  {"H", "D", "D", "D", "D", "H", "H", "H", "H", "H"},
+	},
+
+	Soft: {
+		20: {"S", "S", "S", "S", "S", "S", "S", "S", "S", "S"},      // A,9 (soft 20)
+		19: {"S", "S", "S", "S", "Ds", "S", "S", "S", "S", "S"},     // A,8 (soft 19)
+		18: {"Ds", "Ds", "Ds", "Ds", "Ds", "S", "S", "H", "H", "H"}, // A,7 (soft 18)
+		17: {"H", "D", "D", "D", "D", "H", "H", "H", "H", "H"},      // A,6 (soft 17)
+		16: {"H", "H", "D", "D", "D", "H", "H", "H", "H", "H"},      // A,5 (soft 16)
+		15: {"H", "H", "D", "D", "D", "H", "H", "H", "H", "H"},      // A,4 (soft 15)
+		14: {"H", "H", "H", "D", "D", "H", "H", "H", "H", "H"},      // A,3 (soft 14)
+		13: {"H", "H", "H", "D", "D", "H", "H", "H", "H", "H"},      // A,2 (soft 13)
+	},
+
+	Splits: {
+		11: {"Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"},
+		10: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		9:  {"Y", "Y", "Y", "Y", "Y", "N", "Y", "Y", "N", "N"},
+		8:  {"Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y"},
+		7:  {"Y", "Y", "Y", "Y", "Y", "Y", "N", "N", "N", "N"},
+		6:  {"Y", "Y", "Y", "Y", "Y", "N", "N", "N", "N", "N"},
+		5:  {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		4:  {"N", "N", "N", "Y", "Y", "N", "N", "N", "N", "N"},
+		3:  {"Y", "Y", "Y", "Y", "Y", "Y", "N", "N", "N", "N"},
+		2:  {"Y", "Y", "Y", "Y", "Y", "Y", "N", "N", "N", "N"},
+	},
+
+	Surrender: {
+		17: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "Y"},
+		16: {"N", "N", "N", "N", "N", "N", "N", "Y", "Y", "Y"},
+		15: {"N", "N", "N", "N", "N", "N", "N", "N", "Y", "N"},
+		14: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		13: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		12: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		11: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		10: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		9:  {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+	},
 }
 
 func (b *BasicStrategy) Decide(player engine.Hand, dealerUpCard engine.Card) engine.Action {
+
+	var strategy_chart BasicStrategyChart
+	if b.strategy_name == StrategyName(BJA) {
+		strategy_chart = BJAChart
+	} else if b.strategy_name == StrategyName(BJ101App) {
+		strategy_chart = BJ101AppChart
+	} else {
+		panic("Invalid strategy name")
+	}
+	
 	if player.Value() <= 8 {
 		return engine.Hit
 	}
@@ -91,16 +173,16 @@ func (b *BasicStrategy) Decide(player engine.Hand, dealerUpCard engine.Card) eng
 
 
 	// PAIR SPLITTING
-	if player.IsPair() && Chart[Splits][player.Cards[0].Value()][dealerUpCard.Index()] == "Y" {
+	if player.IsPair() && strategy_chart[Splits][player.Cards[0].Value()][dealerUpCard.Index()] == "Y" {
 		return engine.Split
 	}
 
 	var action string
 	// SOFT HANDS
 	if player.IsSoft() {
-		action = Chart[Soft][player.Value()][dealerUpCard.Index()]
+		action = strategy_chart[Soft][player.Value()][dealerUpCard.Index()]
 	} else {
-		action = Chart[Hard][player.Value()][dealerUpCard.Index()]
+		action = strategy_chart[Hard][player.Value()][dealerUpCard.Index()]
 	}
 
 	switch action {
@@ -121,4 +203,21 @@ func (b *BasicStrategy) Decide(player engine.Hand, dealerUpCard engine.Card) eng
 	default:
 		panic("Invalid action in chart")
 	}
+}
+
+func (b *BasicStrategy) CheckSurrenderChart(player engine.Hand, dealerUpCard engine.Card) bool {
+	var strategy_chart BasicStrategyChart
+	if b.strategy_name == StrategyName(BJA) {
+		strategy_chart = BJAChart
+	} else if b.strategy_name == StrategyName(BJ101App) {
+		strategy_chart = BJ101AppChart
+	} else {
+		panic("Invalid strategy name")
+	}
+
+	if player.Value() < 9 ||  player.Value() > 17 {
+		return false
+	}
+
+	return strategy_chart[Surrender][player.Value()][dealerUpCard.Index()] == "Y"
 }

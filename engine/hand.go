@@ -4,7 +4,7 @@ type Hand struct {
 	Cards []Card
 	SplitCount int
 	IsDoubled bool
-	IsBust bool
+	HasBusted bool
 }
 
 func (h *Hand) AddCard(c Card) {
@@ -17,7 +17,7 @@ func (h *Hand) RemoveCard() {
 	}
 }
 
-func (h Hand) Value() int {
+func (h *Hand) Value() int {
 	total := 0
 	aces := 0
 	for _, card := range h.Cards {
@@ -33,7 +33,7 @@ func (h Hand) Value() int {
 	return total
 }
 
-func (h Hand) IsSoft() bool {
+func (h *Hand) IsSoft() bool {
 	total := 0
 	aces := 0
 	for _, card := range h.Cards {
@@ -45,30 +45,35 @@ func (h Hand) IsSoft() bool {
 	return aces > 0 && total <= 21
 }
 
-func (h Hand) IsPair() bool {
-	// Use Index() to compare the rank of the cards instead of Rank directly
-	return len(h.Cards) == 2 && h.Cards[0].Index() == h.Cards[1].Index()
+func (h *Hand) IsAceSplit() bool {
+	return h.IsPair() && h.IsSoft()
 }
 
-func (h Hand) IsTwoCardTotal() bool {
-	return len(h.Cards) == 2
+func (h *Hand) CanSplit() bool {
+	return h.SplitCount < 4 && h.IsPair()
 }
 
-// TODO: merge this function with IsBust() ? 
 func (h *Hand) CheckBust() bool {
-	h.IsBust = h.Value() > 21
-	return h.IsBust
+	return h.Value() > 21
 }
-
-func (h Hand) IsBlackjack() bool {
-	return len(h.Cards) == 2 && h.Value() == 21
-}
-
 func (h *Hand) Doubled() {
 	h.IsDoubled = true
 }
 
+func (h *Hand) IsPair() bool {
+	// Use Index() to compare the rank of the cards instead of Rank directly
+	return len(h.Cards) == 2 && h.Cards[0].Index() == h.Cards[1].Index()
+}
+
+func (h *Hand) IsTwoCardTotal() bool {
+	return len(h.Cards) == 2
+}
+
+func (h *Hand) IsBlackjack() bool {
+	return len(h.Cards) == 2 && h.Value() == 21
+}
+
 // Dealer is showing an Ace
-func (h Hand) OffersInsurance() bool {
+func (h *Hand) OffersInsurance() bool {
 	return len(h.Cards) == 2 && h.Cards[0].Rank == 1
 }
