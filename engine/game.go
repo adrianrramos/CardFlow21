@@ -2,9 +2,9 @@ package engine
 
 import "fmt"
 
-// TODO: might want to move Strategy interface
 type Strategy interface {
 	Decide(player Hand, dealerUpCard Card) Action
+	CheckSurrenderChart(player Hand, dealerUpCard Card) bool
 	Name() string
 }
 
@@ -13,6 +13,7 @@ type StatsTracker struct {
 	DoubleWin     int
 	DoubleLoss    int
 	SplitHands    int
+	Surrendered	  int
 	TookInsurance int
 	TotalWagered  float64
 }
@@ -35,6 +36,11 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 	player.AddCard(shoe.Draw())
 	dealer.AddCard(shoe.Draw())
 
+	if shouldSurrender := strat.CheckSurrenderChart(*player, dealer.Cards[0]); shouldSurrender {
+		statsTracker.Surrendered++
+		return wagered / 2
+	}
+
 	if player.IsBlackjack() && !dealer.IsBlackjack() {
 		return float64(wagered) * 1.5
 	} else if player.IsBlackjack() && dealer.IsBlackjack() {
@@ -42,7 +48,7 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 	}
 
 	// Taking Insurance
-	if shoe.true_count >= 3 && dealer.OffersInsurance() {
+	if use_true_count && shoe.true_count >= 3 && dealer.OffersInsurance() {
 		statsTracker.TookInsurance++
 		if dealer.IsBlackjack() {
 			// Hand is dead, insurance pays 2:1 covering your original bet
@@ -74,9 +80,8 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 
 			// Lookup action to catch any splits
 			action := strat.Decide(*current_hand, dealer.Cards[0])
-			if action == Split && current_hand.SplitCount < 4 && current_hand.IsPair() {
+			if action == Split && current_hand.CanSplit() {
 				statsTracker.SplitHands++
-				statsTracker.TotalHands++
 				new_hand := &Hand{}
 				new_hand.AddCard(current_hand.Cards[1])
 				current_hand.RemoveCard()
@@ -157,7 +162,7 @@ Only hitting, standing, and doubling are supported; because splitting and surren
 effect the state of the game, so they are handled by the caller.
 */
 func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {
-	if player.SplitCount >= 1 && player.IsSoft() {
+	if player.IsAceSplit() {
 		return
 	}
 

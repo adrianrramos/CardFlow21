@@ -15,9 +15,8 @@
 
 ### P1 – High Priority
 
-- [ ] Add missing logic for splitting Aces (split Aces can only take ONE more card)  
-- [ ] Add Composer’s metrics library on `agent-fix-1` branch
-- [ ] Improve EV calculations (use total **wagered** instead of total hands)  
+- [ ] Do a [SANITY_CHECK](SANITY_CHECK.md) walkthrough
+- [ ] Add Some of Composer’s metrics library on `agent-fix-1` branch
 - [ ] Try another basic strategy chart and compare outcomes
 
 ### P2 – Medium Priority

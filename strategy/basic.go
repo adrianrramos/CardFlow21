@@ -27,6 +27,7 @@ const (
 	Hard ChartType = iota
 	Soft
 	Splits
+	Surrender
 )
 
 type BasicStrategyChart map[ChartType]map[int][]string
@@ -82,7 +83,19 @@ var BJAChart BasicStrategyChart = BasicStrategyChart{
 		3:  {"Y", "Y", "Y", "Y", "Y", "Y", "N", "N", "N", "N"},
 		2:  {"Y", "Y", "Y", "Y", "Y", "Y", "N", "N", "N", "N"},
 	},
-	// TODO: add surrender table
+
+	Surrender: {
+		17: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "Y"},
+		16: {"N", "N", "N", "N", "N", "N", "N", "Y", "Y", "Y"},
+		15: {"N", "N", "N", "N", "N", "N", "N", "N", "Y", "N"},
+		14: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		13: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		12: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		11: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		10: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		9:  {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		8:  {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+	},
 }
 
 // BS for DAS, H17, 4+ Decks
@@ -123,7 +136,18 @@ var BJ101AppChart BasicStrategyChart = BasicStrategyChart{
 		3:  {"Y", "Y", "Y", "Y", "Y", "Y", "N", "N", "N", "N"},
 		2:  {"Y", "Y", "Y", "Y", "Y", "Y", "N", "N", "N", "N"},
 	},
-	// TODO: add surrender table
+
+	Surrender: {
+		17: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "Y"},
+		16: {"N", "N", "N", "N", "N", "N", "N", "Y", "Y", "Y"},
+		15: {"N", "N", "N", "N", "N", "N", "N", "N", "Y", "N"},
+		14: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		13: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		12: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		11: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		10: {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+		9:  {"N", "N", "N", "N", "N", "N", "N", "N", "N", "N"},
+	},
 }
 
 func (b *BasicStrategy) Decide(player engine.Hand, dealerUpCard engine.Card) engine.Action {
@@ -179,4 +203,21 @@ func (b *BasicStrategy) Decide(player engine.Hand, dealerUpCard engine.Card) eng
 	default:
 		panic("Invalid action in chart")
 	}
+}
+
+func (b *BasicStrategy) CheckSurrenderChart(player engine.Hand, dealerUpCard engine.Card) bool {
+	var strategy_chart BasicStrategyChart
+	if b.strategy_name == StrategyName(BJA) {
+		strategy_chart = BJAChart
+	} else if b.strategy_name == StrategyName(BJ101App) {
+		strategy_chart = BJ101AppChart
+	} else {
+		panic("Invalid strategy name")
+	}
+
+	if player.Value() < 9 ||  player.Value() > 17 {
+		return false
+	}
+
+	return strategy_chart[Surrender][player.Value()][dealerUpCard.Index()] == "Y"
 }
