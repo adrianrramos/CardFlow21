@@ -23,7 +23,7 @@
 ### P2 – Medium Priority
 
 - [ ] Add proper wagers, payouts, and bankroll tracking  
-- [ ] Implement real Insurance logic (side bet, 2:1 payout, up to ½ main bet)  
+- [ ] Add kelly bets
 - [ ] Add calculations for n₀ (hands required to be ~1 SD from EV)  
 - [ ] Add support for additional players at the table  
 - [ ] Implement bet spreads (bet ramp by true count)  

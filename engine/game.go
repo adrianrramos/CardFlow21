@@ -2,8 +2,6 @@ package engine
 
 import "fmt"
 
-// import "fmt"
-
 // TODO: might want to move Strategy interface
 type Strategy interface {
 	Decide(player Hand, dealerUpCard Card) Action
@@ -11,17 +9,19 @@ type Strategy interface {
 }
 
 type StatsTracker struct {
-	TotalHands int
-	DoubleWin  int
-	DoubleLoss int
-	SplitHands int
-	TotalWagered int
+	TotalHands    int
+	DoubleWin     int
+	DoubleLoss    int
+	SplitHands    int
+	TookInsurance int
+	TotalWagered  float64
 }
 
 func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_count bool) float64 {
-	var wagered int
+	total_profit := 0.0
+	var wagered float64
 	if use_true_count && shoe.true_count > 0 {
-		wagered = shoe.true_count * 2
+		wagered = float64(shoe.true_count) * 2
 	} else {
 		wagered = 1
 	}
@@ -41,12 +41,18 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 		return 0
 	}
 
-	if dealer.OffersInsurance() {
-		if shoe.true_count > 3 && dealer.IsBlackjack() {
+	// Taking Insurance
+	if shoe.true_count >= 3 && dealer.OffersInsurance() {
+		statsTracker.TookInsurance++
+		if dealer.IsBlackjack() {
+			// Hand is dead, insurance pays 2:1 covering your original bet
 			return 0
-		} 
-		// TODO: need to handle alternative where player loses insurance bet
+		}
+
+		insurance_ammount := float64(wagered) / 2
+		total_profit -= insurance_ammount
 	}
+
 	if dealer.IsBlackjack() {
 		return float64(-wagered)
 	}
@@ -69,7 +75,8 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 			// Lookup action to catch any splits
 			action := strat.Decide(*current_hand, dealer.Cards[0])
 			if action == Split && current_hand.SplitCount < 4 && current_hand.IsPair() {
-				statsTracker.SplitHands++; statsTracker.TotalHands++
+				statsTracker.SplitHands++
+				statsTracker.TotalHands++
 				new_hand := &Hand{}
 				new_hand.AddCard(current_hand.Cards[1])
 				current_hand.RemoveCard()
@@ -92,11 +99,9 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 	}
 	dealer.CheckBust()
 
-
 	// Evaluate all hands
-	total_profit := 0
 	for _, hand := range hands_stack {
-		var hand_wager int
+		var hand_wager float64
 		if hand.IsDoubled {
 			hand_wager = wagered * 2
 		} else {
@@ -104,11 +109,11 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 		}
 		statsTracker.TotalWagered += hand_wager
 
-		if hand.IsBust {
+		if hand.CheckBust() {
 			total_profit -= hand_wager
 			continue
 		}
-		if dealer.IsBust {
+		if dealer.CheckBust() {
 			if hand.IsDoubled {
 				statsTracker.DoubleWin++
 			}
@@ -138,18 +143,18 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 }
 
 /*
-	PlayOutHand
-	player: Hand to play out
-	dealer: Dealer's hand to access up card and value
-	strat: Strategy to use
-	shoe: Shoe to use
+PlayOutHand
+player: Hand to play out
+dealer: Dealer's hand to access up card and value
+strat: Strategy to use
+shoe: Shoe to use
 
-	This method when given a valid hand will play it out until it busts or stands
-	The state of the hand is set on the hand object itself and can be accessed by 
-	the caller to determine if the hand was busted or not.
+This method when given a valid hand will play it out until it busts or stands
+The state of the hand is set on the hand object itself and can be accessed by
+the caller to determine if the hand was busted or not.
 
-	Only hitting, standing, and doubling are supported; because splitting and surrendering 
-	effect the state of the game, so they are handled by the caller.
+Only hitting, standing, and doubling are supported; because splitting and surrendering
+effect the state of the game, so they are handled by the caller.
 */
 func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {
 	if player.SplitCount >= 1 && player.IsSoft() {
@@ -158,7 +163,7 @@ func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {
 
 	for {
 		action := strat.Decide(*player, dealer.Cards[0])
-		
+
 		switch action {
 		case Double:
 			player.Doubled()
@@ -169,7 +174,7 @@ func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {
 			if player.CheckBust() {
 				return
 			}
-		case Stand: 
+		case Stand:
 			return
 		case Surrender:
 			fmt.Println("Surrender not supported yet")

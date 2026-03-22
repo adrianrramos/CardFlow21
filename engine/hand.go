@@ -4,7 +4,7 @@ type Hand struct {
 	Cards []Card
 	SplitCount int
 	IsDoubled bool
-	IsBust bool
+	HasBusted bool
 }
 
 func (h *Hand) AddCard(c Card) {
@@ -54,10 +54,8 @@ func (h Hand) IsTwoCardTotal() bool {
 	return len(h.Cards) == 2
 }
 
-// TODO: merge this function with IsBust() ? 
 func (h *Hand) CheckBust() bool {
-	h.IsBust = h.Value() > 21
-	return h.IsBust
+	return h.Value() > 21
 }
 
 func (h Hand) IsBlackjack() bool {
