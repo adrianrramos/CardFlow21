@@ -3,14 +3,14 @@ package simulation
 import "math"
 
 type Stats struct {
-	TotalHands    int
-	TotalWagered  float64
-	Profit        float64
-	Mean          float64
-	MeanHands          float64
-	M2            float64
-	DoubleWin     int
-	DoubleLoss    int
+	TotalHands   int
+	TotalWagered float64
+	Profit       float64
+	Mean         float64
+	MeanHands    float64
+	M2           float64
+	DoubleWin    int
+	DoubleLoss   int
 }
 
 func (s *Stats) Update(result float64) {

@@ -1,0 +1,5 @@
+rounds: 100000
+decks: 6
+penetration: 0.85
+use_true_count: false
+strategy: BJA

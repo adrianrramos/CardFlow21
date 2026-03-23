@@ -5,12 +5,13 @@ import (
 )
 
 type StrategyName int
+
 const (
 	BJA StrategyName = iota
 	BJ101App
 )
 
-type BasicStrategy struct{
+type BasicStrategy struct {
 	strategy_name StrategyName
 }
 
@@ -23,6 +24,7 @@ func (b *BasicStrategy) Name() string {
 }
 
 type ChartType int
+
 const (
 	Hard ChartType = iota
 	Soft
@@ -147,7 +149,7 @@ func (b *BasicStrategy) Decide(player engine.Hand, dealerUpCard engine.Card) eng
 	} else {
 		panic("Invalid strategy name")
 	}
-	
+
 	if player.Value() <= 8 {
 		return engine.Hit
 	}
@@ -157,7 +159,6 @@ func (b *BasicStrategy) Decide(player engine.Hand, dealerUpCard engine.Card) eng
 	if !player.IsSoft() && player.Value() > 17 {
 		return engine.Stand
 	}
-
 
 	// PAIR SPLITTING
 	if player.IsPair() && strategy_chart[Splits][player.Cards[0].Value()][dealerUpCard.Index()] == "Y" {
@@ -202,7 +203,7 @@ func (b *BasicStrategy) CheckSurrenderChart(player engine.Hand, dealerUpCard eng
 		panic("Invalid strategy name")
 	}
 
-	if player.Value() < 15 ||  player.Value() > 17 {
+	if player.Value() < 15 || player.Value() > 17 {
 		return false
 	}
 

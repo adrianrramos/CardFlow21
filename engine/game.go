@@ -13,7 +13,7 @@ type StatsTracker struct {
 	DoubleWin     int
 	DoubleLoss    int
 	SplitHands    int
-	Surrendered	  int
+	Surrendered   int
 	TookInsurance int
 	TotalWagered  float64
 }
