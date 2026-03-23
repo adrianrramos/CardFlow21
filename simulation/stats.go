@@ -16,6 +16,9 @@ type Stats struct {
 func (s *Stats) Update(result float64) {
 	s.TotalHands++
 	s.Profit += result
+	// TODO:
+	// This is a real bug in the EV/Wagered calculation. In simulation/stats.go, you accumulate
+	// TotalWagered using math.Abs(result) (abs profit), not the amount actually wagered:
 	s.TotalWagered += math.Abs(result)
 
 	delta := result - s.Mean
@@ -32,6 +35,7 @@ func (s *Stats) Variance() float64 {
 	return s.M2 / float64(s.TotalHands-1)
 }
 
+// TODO: this is not being used
 func (s *Stats) StdDev() float64 {
 	return math.Sqrt(s.Variance())
 }

@@ -8,9 +8,9 @@ import (
 	"os"
 	"strings"
 
-	"gopkg.in/yaml.v3"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {
@@ -76,7 +76,7 @@ func main() {
 	fmt.Printf("%-17s %v\n", "Profit: ", stats.Profit)
 	fmt.Printf("%-17s %v\n", "EV/Wagered: ", stats.Mean)
 	fmt.Printf("%-17s %v\n", "EV/Hand: ", stats.MeanHands)
-	fmt.Printf("%-17s %v\n", "Std Dev: ", stats.M2)
+	fmt.Printf("%-17s %v\n", "Std Dev: ", stats.StdDev())
 	fmt.Printf("%-17s %v\n", "Hands: ", p.Sprintf("%d", statsTracker.TotalHands))
 	fmt.Printf("%-17s %v\n", "Doubles Won: ", statsTracker.DoubleWin)
 	fmt.Printf("%-17s %v\n", "Doubles Lost: ", statsTracker.DoubleLoss)

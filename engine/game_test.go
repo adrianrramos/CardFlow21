@@ -48,6 +48,10 @@ func (m *mockStrategy) Decide(_ Hand, _ Card) Action {
 
 func (m *mockStrategy) Name() string { return "mock" }
 
+// CheckSurrenderChart implements the Strategy interface.
+// The test suite does not cover surrender behavior, so default to "never surrender".
+func (m *mockStrategy) CheckSurrenderChart(_ Hand, _ Card) bool { return false }
+
 // --- PlayHandWithStrategy Tests ---
 //
 // Deal order from newTestShoe(p1, d1, p2, d2, ...):

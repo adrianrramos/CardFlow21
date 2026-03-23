@@ -184,7 +184,7 @@ func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {
 		case Stand:
 			return
 		default:
-			fmt.Println("Action of: %v is not recognized", action)
+			fmt.Printf("Action of: %v is not recognized\n", action)
 			return
 		}
 	}
