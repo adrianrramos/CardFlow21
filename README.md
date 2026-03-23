@@ -23,9 +23,5 @@ CardFlow21 is a blackjack engine and simulation toolkit focused on analyzing exp
 From the project root:
 
 ```bash
-go run ./cmd \
-  -rounds 100000 \
-  -decks 6 \
-  -penetration 0.85 \
-  -use_true_count
+go run ./cmd
 ```
