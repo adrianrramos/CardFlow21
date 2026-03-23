@@ -13,21 +13,21 @@ func c(rank int) Card {
 // Shoe.Draw() pops from the end of the internal slice, so we reverse the
 // arguments so that the first argument is the first card dealt.
 func newTestShoe(cards ...Card) *Shoe {
-    // 1. Start from a real shoe
-    s := NewShoe(6, 0.85) // or whatever decks/penetration you want for tests
+	// 1. Start from a real shoe
+	s := NewShoe(6, 0.85) // or whatever decks/penetration you want for tests
 
-    // 2. Ensure the shoe has room (it will)
-    // 3. Overwrite the LAST len(cards) elements with your custom cards,
-    //    in the order they should be drawn.
-    for i, card := range cards {
-        s.cards[len(s.cards)-len(cards)+i] = card
-    }
+	// 2. Ensure the shoe has room (it will)
+	// 3. Overwrite the LAST len(cards) elements with your custom cards,
+	//    in the order they should be drawn.
+	for i, card := range cards {
+		s.cards[len(s.cards)-len(cards)+i] = card
+	}
 
-    // Optionally reset count/true_count if you need them specific
-    s.count = 0
-    s.true_count = 0
+	// Optionally reset count/true_count if you need them specific
+	s.count = 0
+	s.true_count = 0
 
-    return s
+	return s
 }
 
 // mockStrategy returns actions from a predetermined slice, defaulting to
@@ -47,6 +47,10 @@ func (m *mockStrategy) Decide(_ Hand, _ Card) Action {
 }
 
 func (m *mockStrategy) Name() string { return "mock" }
+
+// CheckSurrenderChart implements the Strategy interface.
+// The test suite does not cover surrender behavior, so default to "never surrender".
+func (m *mockStrategy) CheckSurrenderChart(_ Hand, _ Card) bool { return false }
 
 // --- PlayHandWithStrategy Tests ---
 //
@@ -166,7 +170,7 @@ func TestPlayHandWithStrategy_DoubleWin(t *testing.T) {
 	// Player: 10 + 8 = 18 (doubles, gets 5th card); Dealer: 7 + 10 = 17 → +2
 	// 5th card needed for the double; use 2 so player ends 18+2=20 (still wins)
 	shoe := newTestShoe(c(8), c(6), c(3), c(10), c(12))
-	
+
 	var expected_win float64
 	if shoe.true_count > 0 {
 		expected_win = float64(shoe.true_count) * 2 * 2
@@ -197,11 +201,12 @@ func TestPlayHandWithStrategy_DoubleLoss(t *testing.T) {
 // both split hands win.
 //
 // Shoe layout (deal order → split draw order → dealer draw):
-//   p1=9, d1=6, p2=9, d2=Jack → player pair of 9s; dealer 6+10=16
-//   5th card (hand 0 extra): 10 → [9,10]=19
-//   6th card (hand 1 extra): 10 → [9,10]=19
-//   7th card (dealer draw):  2  → dealer 16+2=18
-//   Both 19 > 18 → +2
+//
+//	p1=9, d1=6, p2=9, d2=Jack → player pair of 9s; dealer 6+10=16
+//	5th card (hand 0 extra): 10 → [9,10]=19
+//	6th card (hand 1 extra): 10 → [9,10]=19
+//	7th card (dealer draw):  2  → dealer 16+2=18
+//	Both 19 > 18 → +2
 func TestPlayHandWithStrategy_Split_BothWin(t *testing.T) {
 	shoe := newTestShoe(c(9), c(6), c(9), c(11), c(10), c(10), c(2))
 	// Split (outer), Stand+Stand for hand 0, Stand+Stand for hand 1
@@ -216,10 +221,11 @@ func TestPlayHandWithStrategy_Split_BothWin(t *testing.T) {
 // both split hands lose.
 //
 // Shoe layout:
-//   p1=7, d1=8, p2=7, d2=10 → player pair of 7s; dealer 8+10=18 (stands)
-//   5th card (hand 0 extra): 5 → [7,5]=12
-//   6th card (hand 1 extra): 5 → [7,5]=12
-//   Both 12 < 18 → -2
+//
+//	p1=7, d1=8, p2=7, d2=10 → player pair of 7s; dealer 8+10=18 (stands)
+//	5th card (hand 0 extra): 5 → [7,5]=12
+//	6th card (hand 1 extra): 5 → [7,5]=12
+//	Both 12 < 18 → -2
 func TestPlayHandWithStrategy_Split_BothLose(t *testing.T) {
 	shoe := newTestShoe(c(7), c(8), c(7), c(10), c(5), c(5))
 	strat := &mockStrategy{actions: []Action{Split, Stand, Stand, Stand, Stand}}

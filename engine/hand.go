@@ -1,10 +1,10 @@
 package engine
 
 type Hand struct {
-	Cards []Card
+	Cards      []Card
 	SplitCount int
-	IsDoubled bool
-	HasBusted bool
+	IsDoubled  bool
+	HasBusted  bool
 }
 
 func (h *Hand) AddCard(c Card) {

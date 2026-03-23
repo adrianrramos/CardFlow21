@@ -7,13 +7,13 @@ import (
 )
 
 type Shoe struct {
-	cards []Card
-	decks int
-	penetration float64
+	cards             []Card
+	decks             int
+	penetration       float64
 	cut_card_position int
-	cut_card_out bool
-	count int
-	true_count int
+	cut_card_out      bool
+	count             int
+	true_count        int
 }
 
 // rng is a package-level random source used for shuffling shoes.
@@ -56,7 +56,7 @@ func (s *Shoe) ShuffleShoe() {
 }
 
 func (s *Shoe) Draw() Card {
-	if len(s.cards) <= s.cut_card_position  {
+	if len(s.cards) <= s.cut_card_position {
 		s.cut_card_out = true
 	}
 
