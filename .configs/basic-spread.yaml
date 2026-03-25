@@ -1,6 +1,6 @@
 rounds: 100000000
 decks: 6
 penetration: 0.85
-use_true_count: false
+use_true_count: true
 strategy: BJA
 detailed_logs: true

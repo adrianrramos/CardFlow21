@@ -14,11 +14,12 @@ import (
 )
 
 type Config struct {
-	Rounds       *int     `yaml:"rounds"`
-	Decks        *int     `yaml:"decks"`
-	Penetration  *float64 `yaml:"penetration"`
-	UseTrueCount *bool    `yaml:"use_true_count"`
-	Strategy     *string  `yaml:"strategy"`
+	Rounds        *int     `yaml:"rounds"`
+	Decks         *int     `yaml:"decks"`
+	Penetration   *float64 `yaml:"penetration"`
+	UseTrueCount  *bool    `yaml:"use_true_count"`
+	Strategy      *string  `yaml:"strategy"`
+	Detailed_Logs *bool    `yaml:"detailed_logs"`
 }
 
 // Using no pointers
@@ -28,6 +29,7 @@ type FinalConfig struct {
 	Penetration  float64
 	UseTrueCount bool
 	Strategy     string
+	DetailedLogs bool
 }
 
 func main() {
@@ -38,14 +40,16 @@ func main() {
 	penetration := flag.Float64("penetration", .85, "% of shoe before cut card comes out")
 	use_true_count := flag.Bool("use_true_count", false, "use true count to determine wager")
 	strategy_name := flag.String("strategy", "BJA", "strategy to use: BJA or BJ101App")
+	detailed_logs := flag.Bool("detailed_logs", false, "shows extensive statistics in the final program output")
 
 	flag.Parse()
 	cfg := Config{
-		Rounds:       rounds,
-		Decks:        decks,
-		Penetration:  penetration,
-		UseTrueCount: use_true_count,
-		Strategy:     strategy_name,
+		Rounds:        rounds,
+		Decks:         decks,
+		Penetration:   penetration,
+		UseTrueCount:  use_true_count,
+		Strategy:      strategy_name,
+		Detailed_Logs: detailed_logs,
 	}
 
 	configPath := fmt.Sprintf(".configs/%s.yaml", strings.ToLower(*file))
@@ -78,12 +82,14 @@ func main() {
 	fmt.Printf("%-17s %v\n", "EV/Hand: ", stats.MeanHands)
 	fmt.Printf("%-17s %v\n", "Std Dev: ", stats.StdDev())
 	fmt.Printf("%-17s %v\n", "Hands: ", p.Sprintf("%d", statsTracker.TotalHands))
-	fmt.Printf("%-17s %v\n", "Doubles Won: ", statsTracker.DoubleWin)
-	fmt.Printf("%-17s %v\n", "Doubles Lost: ", statsTracker.DoubleLoss)
-	fmt.Printf("%-17s %v\n", "Splits: ", statsTracker.SplitHands)
-	fmt.Printf("%-17s %v\n", "Wagered: ", statsTracker.TotalWagered)
-	fmt.Printf("%-17s %v\n", "Insurance Took: ", statsTracker.TookInsurance)
-	fmt.Printf("%-17s %v\n", "Surrendered: ", statsTracker.Surrendered)
+	if final.DetailedLogs {
+		fmt.Printf("%-17s %v\n", "Doubles Won: ", statsTracker.DoubleWin)
+		fmt.Printf("%-17s %v\n", "Doubles Lost: ", statsTracker.DoubleLoss)
+		fmt.Printf("%-17s %v\n", "Splits: ", statsTracker.SplitHands)
+		fmt.Printf("%-17s %v\n", "Wagered: ", statsTracker.TotalWagered)
+		fmt.Printf("%-17s %v\n", "Insurance Took: ", statsTracker.TookInsurance)
+		fmt.Printf("%-17s %v\n", "Surrendered: ", statsTracker.Surrendered)
+	}
 }
 
 func LoadConfig(path string) (Config, error) {
@@ -114,6 +120,9 @@ func Merge(base *Config, override Config) {
 	if override.Strategy != nil {
 		base.Strategy = override.Strategy
 	}
+	if override.Detailed_Logs != nil {
+		base.Detailed_Logs = override.Detailed_Logs
+	}
 }
 
 func resolve(cfg Config) FinalConfig {
@@ -123,6 +132,7 @@ func resolve(cfg Config) FinalConfig {
 		Penetration:  getFloat(cfg.Penetration, 0.85),
 		UseTrueCount: getBool(cfg.UseTrueCount, false),
 		Strategy:     getString(cfg.Strategy, "BJA"),
+		DetailedLogs: getBool(cfg.Detailed_Logs, false),
 	}
 }
 

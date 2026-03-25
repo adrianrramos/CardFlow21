@@ -2,51 +2,14 @@
 
 ## 🔴 1. Payout & Resolution (CRITICAL)
 
-*Still work in progress because insurance is NOT Basic Strategy*
-### Insurance
-- [x] Only offered when dealer shows **Ace**
-- [ ] Costs **0.5x bet**
-- [ ] Pays **2:1** if dealer has blackjack
-- [ ] Lost otherwise
-- [ ] Does not affect main hand payout
-
----
-
-## 🔴 2. Dealer Logic (HIGH IMPACT)
-
-### Dealer rules (H17)
-- [ ] Dealer **hits on soft 17**
-- [ ] Dealer stands on hard 17+
-
-### Dealer blackjack handling
-- [ ] Blackjack checked at correct time
-- [ ] If dealer has blackjack:
-  - [ ] Player loses immediately (unless also blackjack)
-  - [ ] No further player actions occur
-
-### Dealer draw loop
-- [ ] Draws until rules satisfied
-- [ ] Stops correctly at stand condition
-- [ ] No extra draws after bust
-
----
-
-## 🔴 3. Player Integrity (NO CHEATING)
-
-- [ ] Player **cannot see dealer hole card**
-- [ ] Player **cannot see future cards**
-- [ ] Decisions only use:
-  - [ ] Player hand
-  - [ ] Dealer upcard
-  - [ ] Game rules
-
----
+# FINAL REVIEW
+- [ ] Verify TotalWagered is being tracked properly
 
 ## 🟠 4. Splits & Advanced Actions
 
 ### Splitting
-- [ ] Each split creates **independent hand**
-- [ ] Each hand has its **own bet**
+- [x] Each split creates **independent hand**
+- [x] Each hand has its **own bet**
 - [ ] Resplit rules (RSA) enforced correctly
 
 ### Split Aces

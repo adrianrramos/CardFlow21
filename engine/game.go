@@ -22,12 +22,13 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 	total_profit := 0.0
 	var wagered float64
 	if use_true_count && shoe.true_count > 0 {
-		wagered = float64(shoe.true_count) * 2
+		wagered = float64(shoe.true_count) * 4
 	} else {
 		wagered = 1
 	}
 
 	statsTracker.TotalHands++
+	statsTracker.TotalWagered += wagered
 	player := &Hand{}
 	dealer := &Hand{}
 
@@ -48,19 +49,21 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 	}
 
 	// Taking Insurance
-	if use_true_count && shoe.true_count >= 3 && dealer.OffersInsurance() {
+	if use_true_count && shoe.true_count >= 3 && dealer.IsShowingAce() {
 		statsTracker.TookInsurance++
+		statsTracker.TotalWagered += wagered / 2
+
 		if dealer.IsBlackjack() {
 			// Hand is dead, insurance pays 2:1 covering your original bet
 			return 0
 		}
 
-		insurance_ammount := float64(wagered) / 2
+		insurance_ammount := wagered / 2
 		total_profit -= insurance_ammount
 	}
 
 	if dealer.IsBlackjack() {
-		return float64(-wagered)
+		return -wagered
 	}
 
 	hands_stack := []*Hand{player}
@@ -70,7 +73,7 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 	finished_hands := 0
 	for finished_hands < len(hands_stack) {
 		q_length := len(hands_stack)
-		for i := 0; i < q_length; i++ {
+		for i := range q_length {
 			current_hand := hands_stack[i]
 
 			// Check if hand was split and needs to be dealt a second card
@@ -83,6 +86,7 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 
 			// Handle Splitting Action
 			if action == Split && current_hand.CanSplit() {
+				statsTracker.TotalWagered += wagered
 				statsTracker.SplitHands++
 				new_hand := &Hand{}
 				new_hand.AddCard(current_hand.Cards[1])
@@ -101,7 +105,7 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 	}
 
 	// Hit 17 rules
-	for dealer.Value() < 17 || (dealer.Value() <= 17 && dealer.IsSoft()) {
+	for dealer.Value() < 17 || (dealer.Value() == 17 && dealer.IsSoft()) {
 		dealer.AddCard(shoe.Draw())
 	}
 	dealer.CheckBust()
@@ -111,10 +115,10 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 		var hand_wager float64
 		if hand.IsDoubled {
 			hand_wager = wagered * 2
+			statsTracker.TotalWagered += hand_wager
 		} else {
 			hand_wager = wagered
 		}
-		statsTracker.TotalWagered += hand_wager
 
 		if hand.CheckBust() {
 			total_profit -= hand_wager
