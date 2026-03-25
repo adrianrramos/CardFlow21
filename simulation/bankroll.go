@@ -4,8 +4,12 @@ type BankRoll struct {
 	Balance float64
 }
 
-func (bank *BankRoll) SetBankRoll(amount float64) {
-	bank.Balance = amount
+func NewBankRoll(amount float64) *BankRoll {
+	bank := &BankRoll{
+		Balance: amount,
+	}
+
+	return bank
 }
 
 // Takes positive / negative values
