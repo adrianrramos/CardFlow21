@@ -29,6 +29,7 @@ go run ./cmd \
   -penetration 0.85 \
   -use_true_count
 ```
+
 ### Using .config YAML files
 From project root go to `./.configs/` and create a new YAML file. Below is an
 an example of `benchmark.yaml` with the following parameters:
