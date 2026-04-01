@@ -8,9 +8,8 @@
 ## 🟠 4. Splits & Advanced Actions
 
 ### Splitting
-- [x] Each split creates **independent hand**
-- [x] Each hand has its **own bet**
 - [ ] Resplit rules (RSA) enforced correctly
+- [ ] resplitting Aces vs only serving 1 card to split aces
 
 ### Split Aces
 - [ ] Only **one card drawn** (if rule applies)

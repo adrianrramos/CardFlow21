@@ -10,17 +10,17 @@ func c(rank int) Card {
 }
 
 // newTestShoe creates a Shoe that deals cards in the given argument order.
-// Shoe.Draw() pops from the end of the internal slice, so we reverse the
-// arguments so that the first argument is the first card dealt.
+// Shoe.Draw() pops from the end of the slice, so the first argument is written
+// to the last index (drawn first), the second to the previous index, etc.
 func newTestShoe(cards ...Card) *Shoe {
 	// 1. Start from a real shoe
 	s := NewShoe(6, 0.85) // or whatever decks/penetration you want for tests
 
 	// 2. Ensure the shoe has room (it will)
-	// 3. Overwrite the LAST len(cards) elements with your custom cards,
-	//    in the order they should be drawn.
+	// 3. Overwrite the last len(cards) positions so the first argument is at
+	//    len-1 (first Draw), the second at len-2, etc.
 	for i, card := range cards {
-		s.cards[len(s.cards)-len(cards)+i] = card
+		s.cards[len(s.cards)-1-i] = card
 	}
 
 	// Optionally reset count/true_count if you need them specific
