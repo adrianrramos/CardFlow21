@@ -3,6 +3,7 @@
 
 ### P1 – High Priority
 
+- [ ] TODO: feature flagging stopped working with the new yaml file changes, default settings are not overwritten from command line args
 - [ ] Do a [SANITY_CHECK](SANITY_CHECK.md) walkthrough
 - [ ] Double check logic for pair of 8's is not being pre-maturely surrendered 
 - [ ] DO NOT MOVE ON to AP simming until
