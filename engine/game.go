@@ -145,7 +145,7 @@ func PlayRound(shoe *Shoe, strat Strategy, statsTracker *StatsTracker, use_true_
 		// Push if values are equal
 	}
 
-	// Shuffle the shoe if the cut card has been dealt
+	// Shuffle the shoe at the end of the round
 	if shoe.cut_card_out {
 		shoe.ShuffleShoe()
 	}
@@ -168,7 +168,7 @@ Only hitting, standing, and doubling are supported; because splitting and surren
 effect the state of the game, so they are handled by the caller.
 */
 func PlayOutHand(player *Hand, dealer *Hand, strat Strategy, shoe *Shoe) {
-	if player.IsAceSplit() {
+	if player.IsSplitHandWithAce() {
 		return
 	}
 

@@ -44,8 +44,8 @@ func (h Hand) IsSoft() bool {
 	return aces > 0 && total <= 21
 }
 
-func (h Hand) IsAceSplit() bool {
-	return h.IsPair() && h.IsSoft()
+func (h Hand) IsSplitHandWithAce() bool {
+	return h.IsSoft() && h.SplitCount >= 1
 }
 
 func (h Hand) CanSplit() bool {
