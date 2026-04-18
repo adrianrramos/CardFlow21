@@ -19,6 +19,7 @@
     - [ ] User can set starting bankroll
     - [ ] Game engine ends play if bankroll hits 0 or can no longer afford next wager
     - [ ] User can define bet spread (start with simple truncated true count, and only for count >= -3 || count <= +7, like BJA)
+- [ ] Read other libraries for how they handle EV and hand automation
 
 ### P2 – Medium Priority
 
