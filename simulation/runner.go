@@ -8,24 +8,29 @@ import (
 	"strings"
 )
 
-func RunSimulation(rounds int, decks int, penetration float64, use_true_count bool, strategy_name strategy.StrategyName) (Stats, engine.StatsTracker) {
+func RunSimulation(rounds int, decks int, penetration float64, use_true_count bool, strategy_name strategy.StrategyName, bankroll float64) (Stats, engine.StatsTracker, WelfordVariance) {
 	stats := Stats{}
+	welfordVariance := WelfordVariance{}
+	player_bank := Bankroll{Balance: float64(bankroll)}
+	fmt.Println("Starting with a player bankroll amount of: %v", player_bank.Balance)
+
 	shoe := engine.NewShoe(decks, penetration)
 	strat := strategy.NewBasicStrategy(strategy_name)
 	statsTracker := engine.StatsTracker{}
 	print_progress := false // for dev
 	const segments = 10
 	lastBucket := -1
-	for i := 0; i < rounds; i++ {
+	for i := range rounds {
 		result := engine.PlayRound(shoe, strat, &statsTracker, use_true_count)
 		stats.Update(result)
+		welfordVariance.AddVariable(result)
 
 		if print_progress {
 			printProgress(segments, rounds, lastBucket, i)
 		}
 	}
 
-	return stats, statsTracker
+	return stats, statsTracker, welfordVariance
 }
 
 func printProgress(segments, rounds, lastBucket, i int) {

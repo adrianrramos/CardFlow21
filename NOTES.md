@@ -3,18 +3,6 @@
 
 ### P1 – High Priority
 
-- [ ] TODO: feature flagging stopped working with the new yaml file changes, default settings are not overwritten from command line args
-- [ ] Do a [SANITY_CHECK](SANITY_CHECK.md) walkthrough
-- [ ] Double check logic for pair of 8's is not being pre-maturely surrendered 
-- [ ] DO NOT MOVE ON to AP simming until
-    - [ ] Baseline EV is established
-    - [ ] Proper metrics tracking is handled
-    - [ ] Library is well tested where it matters most
-- [ ] Consider leveraging Strategy chart for game decision making
-    - [ ] ie. Current logic performs decisions and game resolutions OUTSIDE of the chart -> Surrender parameters are not fully 
-            gathered from chart ie. only checks chart if count is <17 or >14 for example
-    - [ ] GOAL: to be able to port many charts of many different strategy and not tweak the game engine at all
-    - [ ] Consider the future where deviations will take a role and change behaviors of low value hands etc. 
 - [ ] Add Bankroll features
     - [ ] User can set starting bankroll
     - [ ] Game engine ends play if bankroll hits 0 or can no longer afford next wager
@@ -24,7 +12,11 @@
 ### P2 – Medium Priority
 
 - [ ] Add calculations for n₀ (number of hands until profit is ~1 SD from mean EV)  
-
+- [ ] Consider leveraging Strategy chart for game decision making
+    - [ ] ie. Current logic performs decisions and game resolutions OUTSIDE of the chart -> Surrender parameters are not fully
+            gathered from chart ie. only checks chart if count is <17 or >14 for example
+    - [ ] GOAL: to be able to port many charts of many different strategy and not tweak the game engine at all
+    - [ ] Consider the future where deviations will take a role and change behaviors of low value hands etc.
 - [ ] Add support for additional players at the table  
 - [ ] Add BJA deviations (Illustrious 18 / Fab 4, etc.)
 - [ ] Try another basic strategy chart and compare outcomes
@@ -33,6 +25,7 @@
     - [ ] if HTMX is used make sure support for charting / graphs is easy to implement
 - [ ] Make commands to setup Web UI simple for easy portability
 - [ ] Add Some of Composer’s metrics library on `agent-fix-1` branch
+- [ ] TODO: fix issue with using files and flags in the same run command
 
 ### P3 – Lower Priority / Future Work
 
@@ -56,3 +49,36 @@
 ## Scratchpad
 
 - Cut card comes out and switches cut card state, so engine knows to finish current hand but shuffle on the next
+
+## Methods for calculating EV & N0
+
+**Welford's Online Algorithm**
+
+```Python
+class WelfordVariance:
+    def __init__(self):   # Comparison to ShiftDataVariance:
+        self.mean = 0.0   # = K + Ex / n
+        self.count = 0    # = n
+        self.M2 = 0.0     # = Ex2 - (Ex)^2 / n
+
+    def add_variable(self, x: float):
+        self.count += 1
+        old_mean = self.mean
+        self.mean += (x - self.mean) / self.count
+        self.M2 += (x - old_mean) * (x - self.mean)
+
+    def remove_variable(self, x: float):
+        self.count -= 1
+        new_mean = self.mean
+        self.mean -= (x - self.mean) / self.count
+        self.M2 -= (x - new_mean) * (x - self.mean)
+
+    def get_mean(self) -> float:
+        return self.mean
+
+    def get_variance(self) -> float:
+        return self.M2 / self.count
+
+    def get_sample_variance(self) -> float:
+        return self.M2 / (self.count - 1)
+```

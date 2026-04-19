@@ -203,6 +203,8 @@ func (b *BasicStrategy) CheckSurrenderChart(player engine.Hand, dealerUpCard eng
 		panic("Invalid strategy name")
 	}
 
+	// Situations where player should never surrender according to BS
+	// TODO: check for surrender
 	if player.Value() < 15 || player.Value() > 17 {
 		return false
 	}

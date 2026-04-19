@@ -39,3 +39,53 @@ func (s *Stats) Variance() float64 {
 func (s *Stats) StdDev() float64 {
 	return math.Sqrt(s.Variance())
 }
+
+/*
+The Welford Online Algorithm as described in
+https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance
+*/
+type WelfordVariance struct {
+	Mean  float64
+	Count int64
+	M2    float64
+}
+
+/*
+Performs an update to overall stats from the payout
+of a new hand
+*/
+func (w *WelfordVariance) AddVariable(payout float64) {
+	w.Count++
+	oldMean := w.Mean
+	w.Mean += (payout - w.Mean) / float64(w.Count)
+	w.M2 += (payout - oldMean) * (payout - w.Mean)
+}
+
+/*
+Reverses an update to overall stats with a given payout
+*/
+func (w *WelfordVariance) RemoveVariable(payout float64) {
+	w.Count--
+	newMean := w.Mean
+	w.Mean -= (payout - w.Mean) / float64(w.Count)
+	w.M2 -= (payout - newMean) * (payout - w.Mean)
+}
+
+func (w *WelfordVariance) GetMean() float64 {
+	return w.Mean
+}
+
+func (w *WelfordVariance) GetVariance() float64 {
+	return w.M2 / float64(w.Count)
+}
+
+func (w *WelfordVariance) GetSampleVariance() float64 {
+	return w.M2 / float64(w.Count-1)
+}
+
+func (w *WelfordVariance) GetStdDev() float64 {
+	return math.Sqrt(w.GetVariance())
+}
+func (w *WelfordVariance) GetSampleStdDev() float64 {
+	return math.Sqrt(w.GetSampleVariance())
+}

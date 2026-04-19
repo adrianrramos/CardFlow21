@@ -5,11 +5,13 @@ import (
 	"cardflow21/strategy"
 	"flag"
 	"fmt"
+	"math"
 	"os"
 	"strings"
 
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
+
 	"gopkg.in/yaml.v3"
 )
 
@@ -20,6 +22,7 @@ type Config struct {
 	UseTrueCount  *bool    `yaml:"use_true_count"`
 	Strategy      *string  `yaml:"strategy"`
 	Detailed_Logs *bool    `yaml:"detailed_logs"`
+	Bankroll      *float64 `yaml:"bankroll"`
 }
 
 // Using no pointers
@@ -30,6 +33,7 @@ type FinalConfig struct {
 	UseTrueCount bool
 	Strategy     string
 	DetailedLogs bool
+	Bankroll     float64
 }
 
 func main() {
@@ -41,6 +45,7 @@ func main() {
 	use_true_count := flag.Bool("use_true_count", false, "use true count to determine wager")
 	strategy_name := flag.String("strategy", "BJA", "strategy to use: BJA or BJ101App")
 	detailed_logs := flag.Bool("detailed_logs", false, "shows extensive statistics in the final program output")
+	bankroll := flag.Float64("bankroll", 0, "the starting bankroll for the player")
 
 	flag.Parse()
 	cfg := Config{
@@ -50,6 +55,7 @@ func main() {
 		UseTrueCount:  use_true_count,
 		Strategy:      strategy_name,
 		Detailed_Logs: detailed_logs,
+		Bankroll:      bankroll,
 	}
 
 	configPath := fmt.Sprintf(".configs/%s.yaml", strings.ToLower(*file))
@@ -72,7 +78,14 @@ func main() {
 		stratName = strategy.BJA
 	}
 
-	stats, statsTracker := simulation.RunSimulation(final.Rounds, final.Decks, final.Penetration, final.UseTrueCount, stratName)
+	stats, statsTracker, welfordVariance := simulation.RunSimulation(
+		final.Rounds,
+		final.Decks,
+		final.Penetration,
+		final.UseTrueCount,
+		stratName,
+		final.Bankroll,
+	)
 
 	p := message.NewPrinter(language.English)
 
@@ -90,6 +103,18 @@ func main() {
 		fmt.Printf("%-17s %v\n", "Insurance Took: ", statsTracker.TookInsurance)
 		fmt.Printf("%-17s %v\n", "Surrendered: ", statsTracker.Surrendered)
 	}
+
+	// PRINTING WELFORDS RESULTS
+	ev := welfordVariance.GetMean()
+	variance := welfordVariance.GetVariance()
+	n0 := variance / math.Pow(ev, 2)
+
+	fmt.Printf("%-17s %v\n", "Hands Played: ", p.Sprintf("%d", welfordVariance.Count))
+	fmt.Printf("%-17s %v\n", "EV: ", ev)
+	fmt.Printf("%-17s %v\n", "Variance: ", variance)
+	fmt.Printf("%-17s %v\n", "Std Dev: ", math.Sqrt(variance))
+	fmt.Printf("%-17s %v\n", "Rounds until N0: ", n0)
+	fmt.Printf("%-17s %v\n", "Hours until N0 (Assuming 100 rounds/hr): ", (n0 / 100))
 }
 
 func LoadConfig(path string) (Config, error) {
@@ -123,6 +148,9 @@ func Merge(base *Config, override Config) {
 	if override.Detailed_Logs != nil {
 		base.Detailed_Logs = override.Detailed_Logs
 	}
+	if override.Bankroll != nil {
+		base.Bankroll = override.Bankroll
+	}
 }
 
 func resolve(cfg Config) FinalConfig {
@@ -133,6 +161,7 @@ func resolve(cfg Config) FinalConfig {
 		UseTrueCount: getBool(cfg.UseTrueCount, false),
 		Strategy:     getString(cfg.Strategy, "BJA"),
 		DetailedLogs: getBool(cfg.Detailed_Logs, false),
+		Bankroll:     getFloat(cfg.Bankroll, 0),
 	}
 }
 
